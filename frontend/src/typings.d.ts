@@ -18,3 +18,20 @@ declare module 'react-fittext';
 declare module 'bizcharts-plugin-slider';
 
 declare const REACT_APP_ENV: 'test' | 'dev' | 'pre' | false;
+
+type TableListPagination = {
+  total: number;
+  pageSize: number;
+  current: number;
+};
+
+type TableListParams = {
+  status?: string;
+  name?: string;
+  search?: string;
+  key?: number;
+  pageSize?: number;
+  currentPage?: number;
+  filter?: Record<string, any[]>;
+  sorter?: Record<string, any>;
+};

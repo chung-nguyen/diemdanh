@@ -29,10 +29,10 @@ export default [
     component: './Welcome',
   },
   {
-    name: 'list.table-list',
+    name: 'Khách mời',
     icon: 'table',
-    path: '/list',
-    component: './TableList',
+    path: '/guest',
+    component: './GuestList',
   },
   {
     path: '/',
