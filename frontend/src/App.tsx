@@ -1,66 +1,139 @@
-import './App.css';
+import { AvatarDropdown, AvatarName, Footer, Question, SelectLang } from '@/components';
+import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { LinkOutlined } from '@ant-design/icons';
+import type { Settings as LayoutSettings } from '@ant-design/pro-components';
+import { SettingDrawer } from '@ant-design/pro-components';
+import type { RunTimeLayoutConfig } from '@umijs/max';
+import { history, Link } from '@umijs/max';
+import React from 'react';
+import defaultSettings from '../config/defaultSettings';
+import { requestConfig } from './request-config';
 
-function App() {
-  return (
-    <>
-      <div className="container lg grid grid-cols-2">
-        <div>
-        <figure className="w-full h-full">
-          <img
-            src="https://images.unsplash.com/photo-1725209259872-6eddad380d2f?w=800&auto=format&fit=crop"
-            alt="Flag"
-            className="object-cover w-full h-full object-cover"
-          />
-        </figure>
-        </div>
-        <div className="card-body w-full">
-          <h2 className="card-title text-2xl font-bold mb-6">Đăng nhập</h2>
-          <form>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Email</span>
-              </label>
-              <label className="input input-bordered flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="w-4 h-4 opacity-70"
-                >
-                  <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
-                  <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
-                </svg>
-                <input type="email" className="grow" placeholder="" />
-              </label>
-            </div>
-            <div className="form-control mt-4">
-              <label className="label">
-                <span className="label-text">Mật khẩu</span>
-              </label>
-              <label className="input input-bordered flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="w-4 h-4 opacity-70"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <input type="password" className="grow" placeholder="" />
-              </label>              
-            </div>
-            <div className="form-control mt-6">
-              <button className="btn btn-primary">Đăng nhập</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </>
-  );
+const isDev = process.env.NODE_ENV === 'development';
+const loginPath = '/user/login';
+
+/**
+ * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
+ * */
+export async function getInitialState(): Promise<{
+  settings?: Partial<LayoutSettings>;
+  currentUser?: API.CurrentUser;
+  loading?: boolean;
+  isDev: boolean;
+  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+}> {
+  const fetchUserInfo = async () => {
+    try {
+      const msg = await queryCurrentUser({
+        skipErrorHandler: true,
+      });
+      return msg.data;
+    } catch (error) {
+      history.push(loginPath);
+    }
+    return undefined;
+  };
+  // 如果不是登录页面，执行
+  const { location } = history;
+  if (location.pathname !== loginPath) {
+    const currentUser = await fetchUserInfo();
+    return {
+      fetchUserInfo,
+      currentUser,
+      isDev,
+      settings: defaultSettings as Partial<LayoutSettings>,
+    };
+  }
+  return {
+    fetchUserInfo,
+    isDev,
+    settings: defaultSettings as Partial<LayoutSettings>,
+  };
 }
 
-export default App;
+// ProLayout 支持的api https://procomponents.ant.design/components/layout
+export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
+  return {
+    actionsRender: () => [<Question key="doc" />, <SelectLang key="SelectLang" />],
+    avatarProps: {
+      src: initialState?.currentUser?.avatar,
+      title: <AvatarName />,
+      render: (_, avatarChildren) => {
+        return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
+      },
+    },
+    waterMarkProps: {
+      content: initialState?.currentUser?.name,
+    },
+    footerRender: () => <Footer />,
+    onPageChange: () => {
+      const { location } = history;
+      // 如果没有登录，重定向到 login
+      if (!initialState?.currentUser && location.pathname !== loginPath) {
+        history.push(loginPath);
+      }
+    },
+    bgLayoutImgList: [
+      {
+        src: 'https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/D2LWSqNny4sAAAAAAAAAAAAAFl94AQBr',
+        left: 85,
+        bottom: 100,
+        height: '303px',
+      },
+      {
+        src: 'https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/C2TWRpJpiC0AAAAAAAAAAAAAFl94AQBr',
+        bottom: -68,
+        right: -45,
+        height: '303px',
+      },
+      {
+        src: 'https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/F6vSTbj8KpYAAAAAAAAAAAAAFl94AQBr',
+        bottom: 0,
+        left: 0,
+        width: '331px',
+      },
+    ],
+    links: isDev
+      ? [
+          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+            <LinkOutlined />
+            <span>OpenAPI 文档</span>
+          </Link>,
+        ]
+      : [],
+    menuHeaderRender: undefined,
+    // 自定义 403 页面
+    // unAccessible: <div>unAccessible</div>,
+    // 增加一个 loading 的状态
+    childrenRender: (children) => {
+      // if (initialState?.loading) return <PageLoading />;
+      return (
+        <>
+          {children}
+          {isDev && (
+            <SettingDrawer
+              disableUrlParams
+              enableDarkTheme
+              settings={initialState?.settings}
+              onSettingChange={(settings) => {
+                setInitialState((preInitialState) => ({
+                  ...preInitialState,
+                  settings,
+                  isDev,
+                }));
+              }}
+            />
+          )}
+        </>
+      );
+    },
+    ...initialState?.settings,
+  };
+};
+
+/**
+ * @name request 配置，可以配置错误处理
+ * 它基于 axios 和 ahooks 的 useRequest 提供了一套统一的网络请求和错误处理方案。
+ * @doc https://umijs.org/docs/max/request#配置
+ */
+export const request = requestConfig;
