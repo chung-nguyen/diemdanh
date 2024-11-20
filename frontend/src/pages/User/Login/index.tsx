@@ -1,13 +1,12 @@
 import { login } from '@/services/ant-design-pro/api';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginFormPage, ProFormText } from '@ant-design/pro-components';
-import { Helmet, history, SelectLang, useIntl, useModel } from '@umijs/max';
-import { Alert, message, theme } from 'antd';
+import { Helmet, history, useModel } from '@umijs/max';
+import { message, theme } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { CSSProperties, useState } from 'react';
+import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
-import { useForm } from 'antd/es/form/Form';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -45,36 +44,10 @@ const useStyles = createStyles(({ token }) => {
   };
 });
 
-const Lang = () => {
-  const { styles } = useStyles();
-
-  return (
-    <div className={styles.lang} data-lang>
-      {SelectLang && <SelectLang />}
-    </div>
-  );
-};
-
-const LoginMessage: React.FC<{
-  content: string;
-}> = ({ content }) => {
-  return (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      message={content}
-      type="error"
-      showIcon
-    />
-  );
-};
-
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
-  const intl = useIntl();
 
   const { token } = theme.useToken();
 
@@ -96,10 +69,7 @@ const Login: React.FC = () => {
       // 登录
       const msg = await login({ ...values });
       if (msg.status === 'ok') {
-        const defaultLoginSuccessMessage = intl.formatMessage({
-          id: 'pages.login.success',
-          defaultMessage: '登录成功！',
-        });
+        const defaultLoginSuccessMessage = 'Đăng nhập thành công';
         message.success(defaultLoginSuccessMessage);
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
@@ -109,10 +79,7 @@ const Login: React.FC = () => {
       console.log(msg);
       setUserLoginState(msg);
     } catch (error) {
-      const defaultLoginFailureMessage = intl.formatMessage({
-        id: 'pages.login.failure',
-        defaultMessage: '登录失败，请重试！',
-      });
+      const defaultLoginFailureMessage = 'Đăng nhập thất bại';
       console.log(error);
       message.error(defaultLoginFailureMessage);
     }

@@ -17,7 +17,7 @@ export type GlobalHeaderRightProps = {
 export const AvatarName = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
-  return <span className="anticon">{currentUser?.name}</span>;
+  return <span className="anticon">{currentUser?._id}</span>;
 };
 
 const useStyles = createStyles(({ token }) => {
@@ -66,7 +66,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     const { key } = event;
     if (key === 'logout') {
       flushSync(() => {
-        setInitialState((s) => ({ ...s, currentUser: undefined }));
+        setInitialState((s) => ({ ...s, isDev: initialState?.isDev || false, currentUser: undefined }));
       });
       loginOut();
       return;
@@ -92,32 +92,32 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
 
   const { currentUser } = initialState;
 
-  if (!currentUser || !currentUser.name) {
+  if (!currentUser || !currentUser._id) {
     return loading;
   }
 
   const menuItems = [
     ...(menu
       ? [
-          {
-            key: 'center',
-            icon: <UserOutlined />,
-            label: '个人中心',
-          },
-          {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: '个人设置',
-          },
-          {
-            type: 'divider' as const,
-          },
+          // {
+          //   key: 'center',
+          //   icon: <UserOutlined />,
+          //   label: '个人中心',
+          // },
+          // {
+          //   key: 'settings',
+          //   icon: <SettingOutlined />,
+          //   label: '个人设置',
+          // },
+          // {
+          //   type: 'divider' as const,
+          // },
         ]
       : []),
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: '退出登录',
+      label: 'Đăng xuất',
     },
   ];
 
