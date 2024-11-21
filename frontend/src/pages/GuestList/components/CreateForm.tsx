@@ -9,18 +9,10 @@ import React from 'react';
 
 import { type GuestType } from '@/services/ant-design-pro/guest';
 
-export type FormValueType = {
-  target?: string;
-  template?: string;
-  type?: string;
-  time?: string;
-  frequency?: string;
-} & Partial<GuestType>;
-
 type CreateFormProps = {
   createModalVisible: boolean;
   children?: React.ReactNode;
-  onSubmit: (values: FormValueType) => Promise<void>;
+  onSubmit: (values: GuestType) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -31,7 +23,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
   return (
     <DrawerForm
-      title={intl.formatMessage({ id: 'pages.form.metafields.new', defaultMessage: 'New object' })}
+      title={intl.formatMessage({ id: 'pages.form.metafields.new', defaultMessage: 'Thêm khách mời' })}
       width={600}
       open={createModalVisible}
       onFinish={onSubmit}
@@ -47,10 +39,9 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         value: '',
       }}
     >
-      <ProFormText colProps={{ span: 24 }} name="namespace" label="Namespace" />
-      <ProFormText colProps={{ span: 24 }} name="key" label="Key" />
-      <ProFormTextArea colProps={{ span: 24 }} name="value" label="Value" />
-      <ProFormTextArea colProps={{ span: 24 }} name="description" label="Description" />
+      <ProFormText colProps={{ span: 24 }} name="email" label="Email" />
+      <ProFormText colProps={{ span: 24 }} name="fullName" label="Tên" />
+      <ProFormText colProps={{ span: 24 }} name="office" label="Chức vụ" />
     </DrawerForm>
   );
 };

@@ -1,6 +1,6 @@
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl } from '@umijs/max';
+import { useIntl, history } from '@umijs/max';
 import { Button, message, Popconfirm, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -17,7 +17,6 @@ import { tableColumnState } from '@/services/utils/antd-utils';
 
 import { PlusOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
-import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
 /**
@@ -26,16 +25,16 @@ import UpdateForm from './components/UpdateForm';
  * @param fields
  */
 const handleAdd = async (fields: GuestType) => {
-  const hide = message.loading('Adding');
+  const hide = message.loading('Đang xử lý');
 
   try {
     await addGuest({ ...fields });
     hide();
-    message.success('Added successfully');
+    message.success('Đã thêm thành công');
     return true;
   } catch (error) {
     hide();
-    message.error('Failed to add, please try again!');
+    message.error('Vui lòng thử lại!');
     return false;
   }
 };
@@ -45,8 +44,8 @@ const handleAdd = async (fields: GuestType) => {
  *
  * @param fields
  */
-const handleUpdate = async (fields: FormValueType, currentRow?: GuestType) => {
-  const hide = message.loading('Configuring');
+const handleUpdate = async (fields: GuestType, currentRow?: GuestType) => {
+  const hide = message.loading('Đang xử lý');
 
   try {
     await updateGuest({
@@ -54,11 +53,11 @@ const handleUpdate = async (fields: FormValueType, currentRow?: GuestType) => {
       ...fields,
     });
     hide();
-    message.success('Update successful');
+    message.success('Cập nhật thành công');
     return true;
   } catch (error) {
     hide();
-    message.error('Update failed, please try again!');
+    message.error('Vui lòng thử lại!');
     return false;
   }
 };
@@ -69,19 +68,19 @@ const handleUpdate = async (fields: FormValueType, currentRow?: GuestType) => {
  * @param selectedRows
  */
 const handleRemove = async (selectedRows: GuestType[]) => {
-  const hide = message.loading('Deleting');
+  const hide = message.loading('Đang xử lý');
   if (!selectedRows) return true;
 
   try {
     await removeGuests({
-      ids: selectedRows.map((row: any) => row.id),
+      ids: selectedRows.map((row: any) => row._id),
     });
     hide();
-    message.success('Deleted successfully, will be refreshed soon');
+    message.success('Xóa thành công!');
     return true;
   } catch (error) {
     hide();
-    message.error('Deletion failed, please try again');
+    message.error('Vui lòng thử lại!');
     return false;
   }
 };
@@ -106,6 +105,16 @@ const GuestList: React.FC = () => {
       title: 'Email',
       dataIndex: 'email',
       sorter: true,
+      render: (dom, entity) => (
+        <a
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setCurrentRow(entity);
+          }}
+        >
+          {dom}
+        </a>
+      ),
     },
     {
       title: 'Tên',
@@ -166,7 +175,7 @@ const GuestList: React.FC = () => {
         columnsState={tableColumnState('guest', columnsStateMap, setColumnsStateMap)}
         headerTitle="Danh sách"
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="_id"
         search={{
           labelWidth: 120,
         }}

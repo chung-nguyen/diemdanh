@@ -9,17 +9,9 @@ import React from 'react';
 
 import { type GuestType } from '@/services/ant-design-pro/guest';
 
-export type FormValueType = {
-  target?: string;
-  template?: string;
-  type?: string;
-  time?: string;
-  frequency?: string;
-} & Partial<GuestType>;
-
 export type UpdateFormProps = {
   onCancel: () => void;
-  onSubmit: (values: FormValueType) => Promise<void>;
+  onSubmit: (values: GuestType) => Promise<void>;
   updateModalVisible: boolean;
   values: Partial<GuestType>;
 };
@@ -45,10 +37,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
       }}
       initialValues={values}
     >
-      <ProFormText colProps={{ span: 24 }} name="namespace" label="Namespace" />
-      <ProFormText colProps={{ span: 24 }} name="key" label="Key" />      
-      <ProFormTextArea colProps={{ span: 24 }} name="value" label="Value" />
-      <ProFormTextArea colProps={{ span: 24 }} name="description" label="Description" />
+      <ProFormText colProps={{ span: 24 }} name="email" label="Email" />
+      <ProFormText colProps={{ span: 24 }} name="fullName" label="Tên" />      
+      <ProFormText colProps={{ span: 24 }} name="office" label="Chức vụ" />
     </DrawerForm>
   );
 };

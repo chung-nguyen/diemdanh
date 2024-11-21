@@ -25,7 +25,6 @@ export async function guests(
   const queryParams: any = {
     ...params,
     ...filter,
-    isDeleted: false,
   };
 
   if (sort) {
@@ -41,18 +40,18 @@ export async function guests(
     /** The total number of items in the list */
     total?: number;
     success?: boolean;
-  }>('/guests', {
+  }>('/guest', {
     method: 'GET',
     params: queryParams,
   });
 }
 
 /** Get a single guest GET /guests/:id */
-export async function getGuest(id: bigint) {
+export async function getGuest(id: string) {
   const response = await request<{
     data: GuestType;
     success?: boolean;
-  }>(`/guests/${id}`, {
+  }>(`/guest/${id}`, {
     method: 'GET',
     params: {},
   });
@@ -62,7 +61,7 @@ export async function getGuest(id: bigint) {
 
 /** Update guest PUT /guests */
 export async function updateGuest(data: { [key: string]: any }, options?: { [key: string]: any }) {
-  return request<{ success: boolean; data: GuestType }>(`/guests/${data.id}`, {
+  return request<{ success: boolean; data: GuestType }>(`/guest/${data._id}`, {
     data,
     method: 'PUT',
     ...(options || {}),
@@ -71,7 +70,7 @@ export async function updateGuest(data: { [key: string]: any }, options?: { [key
 
 /** New guest POST /guests */
 export async function addGuest(data: { [key: string]: any }, options?: { [key: string]: any }) {
-  return request<{ success: boolean; data: GuestType }>('/guests', {
+  return request<{ success: boolean; data: GuestType }>('/guest', {
     data,
     method: 'POST',
     ...(options || {}),
@@ -79,8 +78,8 @@ export async function addGuest(data: { [key: string]: any }, options?: { [key: s
 }
 
 /** delete guest DELETE /guests */
-export async function removeGuests(data: { ids: bigint[] }, options?: { [key: string]: any }) {
-  return request<{ success: boolean; message: string }>('/guests', {
+export async function removeGuests(data: { ids: string[] }, options?: { [key: string]: any }) {
+  return request<{ success: boolean; message: string }>('/guest', {
     data,
     method: 'DELETE',
     ...(options || {}),

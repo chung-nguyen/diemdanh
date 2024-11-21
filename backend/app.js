@@ -11,6 +11,7 @@ require('./plugins/express-async-error');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/authenticate');
+var guestRouter = require('./routes/guest');
 
 dotenv.config({
   path: '.env',
@@ -34,6 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 var api = express.Router();
 api.use('/', indexRouter);
 api.use('/auth', authRouter);
+api.use('/guest', guestRouter);
 
 app.use('/api/v1', api);
 
@@ -49,6 +51,7 @@ app.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
+  console.error(err);
   res.status(err.status || 500);
   res.json({ status: 'error', message: err.message });
 });
