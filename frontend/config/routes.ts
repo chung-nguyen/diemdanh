@@ -35,6 +35,12 @@ export default [
     component: './GuestList',
   },
   {
+    name: 'Hội nghị',
+    icon: 'table',
+    path: '/meeting',
+    component: './MeetingList',
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

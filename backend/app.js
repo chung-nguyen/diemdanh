@@ -12,6 +12,7 @@ require('./plugins/express-async-error');
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/authenticate');
 var guestRouter = require('./routes/guest');
+var meetingRouter = require('./routes/meeting');
 
 dotenv.config({
   path: '.env',
@@ -36,6 +37,7 @@ var api = express.Router();
 api.use('/', indexRouter);
 api.use('/auth', authRouter);
 api.use('/guest', guestRouter);
+api.use('/meeting', meetingRouter);
 
 app.use('/api/v1', api);
 
