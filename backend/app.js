@@ -13,6 +13,7 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/authenticate');
 var guestRouter = require('./routes/guest');
 var meetingRouter = require('./routes/meeting');
+var attendanceRouter = require('./routes/attendance');
 
 dotenv.config({
   path: '.env',
@@ -36,8 +37,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 var api = express.Router();
 api.use('/', indexRouter);
 api.use('/auth', authRouter);
+
+
+
 api.use('/guest', guestRouter);
 api.use('/meeting', meetingRouter);
+api.use('/attendance', attendanceRouter);
 
 app.use('/api/v1', api);
 

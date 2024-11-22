@@ -85,3 +85,16 @@ export async function removeGuests(data: { ids: string[] }, options?: { [key: st
     ...(options || {}),
   });
 }
+
+export async function search(query: string, limit: number, options?: { [key: string]: any }) {
+  const response = await request<GuestType[]>('/guest/search', {
+    params: {      
+      q: query,      
+      c: limit,
+    },
+    method: 'GET',
+    ...(options || {}),
+  });
+
+  return response;
+}

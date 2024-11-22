@@ -108,8 +108,7 @@ const MeetingList: React.FC = () => {
       render: (dom, entity) => (
         <a
           onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(entity);
+            history.push(`/meeting/attendance?id=${entity._id}`);
           }}
         >
           {dom}
@@ -148,7 +147,7 @@ const MeetingList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          Edit
+          Sửa
         </a>,
         <Popconfirm
           key="delete"
@@ -159,7 +158,7 @@ const MeetingList: React.FC = () => {
             actionRef.current?.reloadAndRest?.();
           }}
         >
-          <a>Delete</a>
+          <a>Xóa</a>
         </Popconfirm>,
       ],
     },

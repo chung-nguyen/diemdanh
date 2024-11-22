@@ -1,6 +1,5 @@
 var express = require('express');
-const { Guest } = require('../models');
-const { MAX_SUGGESTIONS } = require('../config');
+const { Attendance } = require('../models');
 
 var router = express.Router();
 
@@ -9,7 +8,7 @@ router.get('/', async function (req, res, next) {
 
   current = Math.max(0, parseInt(String(current)) - 1);
   pageSize = parseInt(String(pageSize));
-  let findCursor = Guest.find(filter)
+  let findCursor = Attendance.find(filter)
     .skip(current * pageSize)
     .limit(pageSize);
 
@@ -17,33 +16,25 @@ router.get('/', async function (req, res, next) {
     findCursor = findCursor.sort({ [sort]: direction === 'ascend' ? 'asc' : 'desc' });
   }
 
-  const [data, total] = await Promise.all([findCursor.exec(), Guest.countDocuments(filter)]);
+  const [data, total] = await Promise.all([findCursor.exec(), Attendance.countDocuments(filter)]);
 
   res.status(200).json({ data, total, success: true });
 });
 
-router.get('/search', async function (req, res, next) {
-  const { q, c } = req.query;
-  const results = await Guest.find({
-    email: { $regex: q, $options: 'i' },
-  }).limit(Math.min(c || 0, MAX_SUGGESTIONS));
-  res.status(200).json(results);
-});
-
 router.get('/:id', async function (req, res, next) {
   const { id } = req.params;
-  const doc = await Guest.findById(id);
+  const doc = await Attendance.findById(id);
   res.status(200).json({ data: doc, success: true });
 });
 
 router.delete('/', async function (req, res, next) {
   const { ids } = req.body;
-  await Guest.deleteMany({ _id: { $in: ids } });
+  await Attendance.deleteMany({ _id: { $in: ids } });
   res.status(200).json({ success: true });
 });
 
 router.post('/', async function (req, res, next) {
-  const doc = new Guest(Object(req.body));
+  const doc = new Attendance(Object(req.body));
   await doc.save();
   res.status(200).json({ data: doc.toObject(), success: true });
 });
@@ -51,7 +42,7 @@ router.post('/', async function (req, res, next) {
 // Update an existing Category
 router.put('/:id', async function (req, res, next) {
   const { id } = req.params;
-  const doc = await Guest.findOneAndUpdate(
+  const doc = await Attendance.findOneAndUpdate(
     { _id: id },
     Object.fromEntries(Object.entries(req.body).filter(([_, value]) => !!value)),
     { new: true }

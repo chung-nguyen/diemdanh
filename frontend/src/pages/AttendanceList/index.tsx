@@ -7,12 +7,12 @@ import React, { useRef, useState } from 'react';
 
 import { useServiceProviders } from '@/services/ant-design-pro/api';
 import {
-  addGuest,
-  guests,
-  removeGuests,
-  updateGuest,
-  type GuestType,
-} from '@/services/ant-design-pro/guest';
+  addAttendance,
+  attendances,
+  removeAttendances,
+  updateAttendance,
+  type AttendanceType,
+} from '@/services/ant-design-pro/attendance';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import { PlusOutlined } from '@ant-design/icons';
@@ -24,11 +24,11 @@ import UpdateForm from './components/UpdateForm';
  *
  * @param fields
  */
-const handleAdd = async (fields: GuestType) => {
+const handleAdd = async (fields: AttendanceType) => {
   const hide = message.loading('Đang xử lý');
 
   try {
-    await addGuest({ ...fields });
+    await addAttendance({ ...fields });
     hide();
     message.success('Đã thêm thành công');
     return true;
@@ -44,11 +44,11 @@ const handleAdd = async (fields: GuestType) => {
  *
  * @param fields
  */
-const handleUpdate = async (fields: GuestType, currentRow?: GuestType) => {
+const handleUpdate = async (fields: AttendanceType, currentRow?: AttendanceType) => {
   const hide = message.loading('Đang xử lý');
 
   try {
-    await updateGuest({
+    await updateAttendance({
       ...currentRow,
       ...fields,
     });
@@ -67,12 +67,12 @@ const handleUpdate = async (fields: GuestType, currentRow?: GuestType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: GuestType[]) => {
+const handleRemove = async (selectedRows: AttendanceType[]) => {
   const hide = message.loading('Đang xử lý');
   if (!selectedRows) return true;
 
   try {
-    await removeGuests({
+    await removeAttendances({
       ids: selectedRows.map((row: any) => row._id),
     });
     hide();
@@ -85,25 +85,27 @@ const handleRemove = async (selectedRows: GuestType[]) => {
   }
 };
 
-const GuestList: React.FC = () => {
+const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<GuestType>();
-  const [selectedRowsState, setSelectedRows] = useState<GuestType[]>([]);
+  const [currentRow, setCurrentRow] = useState<AttendanceType>();
+  const [selectedRowsState, setSelectedRows] = useState<AttendanceType[]>([]);
   const [columnsStateMap, setColumnsStateMap] = useState<Record<string, ColumnsState>>({
     width: { show: false },
     height: { show: false },
     alt: { show: false },
   });
   const intl = useIntl();
-  const { getMediaUrl } = useServiceProviders();
 
-  const columns: ProColumns<GuestType>[] = [
+  const urlParams = new URL(window.location.href).searchParams;
+  const meetingId = String(urlParams.get('id'));
+
+  const columns: ProColumns<AttendanceType>[] = [
     {
-      title: 'Email',
-      dataIndex: 'email',
+      title: 'Tên hội nghị',
+      dataIndex: 'name',
       sorter: true,
       render: (dom, entity) => (
         <a
@@ -115,17 +117,7 @@ const GuestList: React.FC = () => {
           {dom}
         </a>
       ),
-    },
-    {
-      title: 'Tên',
-      dataIndex: 'fullName',
-      sorter: true,
-    },
-    {
-      title: 'Chức vụ',
-      dataIndex: 'office',
-      sorter: true,
-    },
+    },    
     {
       title: 'Created At',
       dataIndex: 'createdAt',
@@ -152,7 +144,7 @@ const GuestList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          Sửa
+          Edit
         </a>,
         <Popconfirm
           key="delete"
@@ -163,7 +155,7 @@ const GuestList: React.FC = () => {
             actionRef.current?.reloadAndRest?.();
           }}
         >
-          <a>Xóa</a>
+          <a>Delete</a>
         </Popconfirm>,
       ],
     },
@@ -171,14 +163,12 @@ const GuestList: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<GuestType, TableListPagination>
-        columnsState={tableColumnState('guest', columnsStateMap, setColumnsStateMap)}
+      <ProTable<AttendanceType, TableListPagination>
+        columnsState={tableColumnState('attendance', columnsStateMap, setColumnsStateMap)}
         headerTitle="Danh sách"
         actionRef={actionRef}
         rowKey="_id"
-        search={{
-          labelWidth: 120,
-        }}
+        search={false}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
@@ -196,7 +186,7 @@ const GuestList: React.FC = () => {
             <PlusOutlined /> New
           </Button>,
         ]}
-        request={guests}
+        request={attendances(meetingId)}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -236,7 +226,7 @@ const GuestList: React.FC = () => {
 
       <CreateForm
         createModalVisible={createModalVisible}
-        onSubmit={async (value: GuestType) => {
+        onSubmit={async (value: AttendanceType) => {
           const success = await handleAdd(value);
           if (success) {
             handleCreateModalVisible(false);
@@ -278,4 +268,4 @@ const GuestList: React.FC = () => {
   );
 };
 
-export default GuestList;
+export default AttendanceList;

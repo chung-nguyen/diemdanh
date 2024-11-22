@@ -21,12 +21,19 @@ export default [
         component: './User/Login',
       },
     ],
+  },  
+  {
+    name: 'Hội nghị',
+    icon: 'table',
+    path: '/meeting',
+    component: './MeetingList',
   },
   {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
+    name: 'Điểm danh',
+    icon: 'table',
+    path: '/meeting/attendance',
+    component: './AttendanceList',
+    hideInMenu: true
   },
   {
     name: 'Khách mời',
@@ -35,14 +42,8 @@ export default [
     component: './GuestList',
   },
   {
-    name: 'Hội nghị',
-    icon: 'table',
-    path: '/meeting',
-    component: './MeetingList',
-  },
-  {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/meeting',
   },
   {
     path: '*',
