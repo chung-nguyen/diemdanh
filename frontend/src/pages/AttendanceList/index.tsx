@@ -1,6 +1,6 @@
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, history } from '@umijs/max';
+import { useIntl, history, useRequest, useQuery } from '@umijs/max';
 import { Button, message, Popconfirm, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -18,6 +18,7 @@ import { tableColumnState } from '@/services/utils/antd-utils';
 import { PlusOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
+import { getMeeting } from '@/services/ant-design-pro/meeting';
 
 /**
  * Add node
@@ -102,10 +103,18 @@ const AttendanceList: React.FC = () => {
   const urlParams = new URL(window.location.href).searchParams;
   const meetingId = String(urlParams.get('id'));
 
+  const { data: meeting, isLoading } = useQuery(
+    ['attendance-list', meetingId],
+    () => getMeeting(meetingId),
+    {
+      enabled: !!meetingId,
+    },
+  );
+
   const columns: ProColumns<AttendanceType>[] = [
     {
-      title: 'Tên hội nghị',
-      dataIndex: 'name',
+      title: 'Tên khách mời',
+      dataIndex: 'guestId',
       sorter: true,
       render: (dom, entity) => (
         <a
@@ -114,10 +123,22 @@ const AttendanceList: React.FC = () => {
             setCurrentRow(entity);
           }}
         >
-          {dom}
+          {(entity.guestId as any)?.fullName}
         </a>
       ),
-    },    
+    },
+    {
+      title: 'Email',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.email
+    },
+    {
+      title: 'QR Code',
+      dataIndex: 'guestId',
+      sorter: false,
+      
+    },
     {
       title: 'Created At',
       dataIndex: 'createdAt',
@@ -137,15 +158,6 @@ const AttendanceList: React.FC = () => {
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
-        <a
-          key="edit"
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(record);
-          }}
-        >
-          Edit
-        </a>,
         <Popconfirm
           key="delete"
           title="Chắc chắn?"
@@ -155,14 +167,14 @@ const AttendanceList: React.FC = () => {
             actionRef.current?.reloadAndRest?.();
           }}
         >
-          <a>Delete</a>
+          <a>Xóa</a>
         </Popconfirm>,
       ],
     },
   ];
 
   return (
-    <PageContainer>
+    <PageContainer loading={isLoading}>
       <ProTable<AttendanceType, TableListPagination>
         columnsState={tableColumnState('attendance', columnsStateMap, setColumnsStateMap)}
         headerTitle="Danh sách"
@@ -225,8 +237,13 @@ const AttendanceList: React.FC = () => {
       )}
 
       <CreateForm
+        meeting={meeting?.data}
         createModalVisible={createModalVisible}
         onSubmit={async (value: AttendanceType) => {
+          if (!meeting?.data._id) {
+            return;
+          }
+          value.meetingId = meeting?.data._id;
           const success = await handleAdd(value);
           if (success) {
             handleCreateModalVisible(false);

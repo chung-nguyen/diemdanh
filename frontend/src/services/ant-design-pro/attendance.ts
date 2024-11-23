@@ -10,6 +10,8 @@ export enum AttendanceSTatus {
 
 export type AttendanceType = {
   _id: string;
+  meetingId: string;
+  guestId: string;
   status: AttendanceSTatus;
   checkInTime: Date;
   createdAt?: Date;

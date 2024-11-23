@@ -1,5 +1,5 @@
 var express = require('express');
-const { Attendance } = require('../models');
+const { Attendance, Guest } = require('../models');
 
 var router = express.Router();
 
@@ -9,6 +9,7 @@ router.get('/', async function (req, res, next) {
   current = Math.max(0, parseInt(String(current)) - 1);
   pageSize = parseInt(String(pageSize));
   let findCursor = Attendance.find(filter)
+    .populate('guestId')
     .skip(current * pageSize)
     .limit(pageSize);
 
@@ -34,6 +35,13 @@ router.delete('/', async function (req, res, next) {
 });
 
 router.post('/', async function (req, res, next) {
+  if (req.body.guestEmail) {
+    const guest = await Guest.findOne({ email: req.body.guestEmail });
+    delete req.body.guestEmail;
+
+    req.body.guestId = guest._id;
+  }
+
   const doc = new Attendance(Object(req.body));
   await doc.save();
   res.status(200).json({ data: doc.toObject(), success: true });
