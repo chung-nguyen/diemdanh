@@ -1,11 +1,11 @@
+import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, history, useRequest, useQuery } from '@umijs/max';
-import { Button, message, Popconfirm, Space, Typography } from 'antd';
+import { useIntl, useQuery } from '@umijs/max';
+import { Button, message, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
-import { useServiceProviders } from '@/services/ant-design-pro/api';
 import {
   addAttendance,
   attendances,
@@ -13,12 +13,13 @@ import {
   updateAttendance,
   type AttendanceType,
 } from '@/services/ant-design-pro/attendance';
+import { getMeeting } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
-import { PlusOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
-import UpdateForm from './components/UpdateForm';
-import { getMeeting } from '@/services/ant-design-pro/meeting';
+import ViewForm from './components/ViewForm';
+import { getCheckInLink } from '@/services/utils/common-utils';
+import CopyableQRCode from '@/components/QRCode';
 
 /**
  * Add node
@@ -88,7 +89,7 @@ const handleRemove = async (selectedRows: AttendanceType[]) => {
 
 const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
-  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [viewModalVisible, handleViewModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<AttendanceType>();
@@ -119,7 +120,7 @@ const AttendanceList: React.FC = () => {
       render: (dom, entity) => (
         <a
           onClick={() => {
-            handleUpdateModalVisible(true);
+            handleViewModalVisible(true);
             setCurrentRow(entity);
           }}
         >
@@ -131,13 +132,29 @@ const AttendanceList: React.FC = () => {
       title: 'Email',
       dataIndex: 'guestId',
       sorter: true,
-      render: (dom, entity) => (entity.guestId as any)?.email
+      render: (dom, entity) => (entity.guestId as any)?.email,
     },
     {
       title: 'QR Code',
       dataIndex: 'guestId',
       sorter: false,
-      
+      render: (dom, entity) => {
+        const link =
+          meeting &&
+          entity?.guestId &&
+          getCheckInLink(meeting.data._id, (entity.guestId as any)!._id);
+        return (
+          <CopyableQRCode
+            size={256}
+            height={64}
+            style={{ height: 'auto', maxWidth: '50%', width: '50%' }}
+            value={link}
+            viewBox={`0 0 256 256`}
+          >
+            {' '}
+          </CopyableQRCode>
+        );
+      },
     },
     {
       title: 'Created At',
@@ -259,26 +276,14 @@ const AttendanceList: React.FC = () => {
         }}
       />
 
-      <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value, currentRow);
-
-          if (success) {
-            handleUpdateModalVisible(false);
-            setCurrentRow(undefined);
-            setShowDetail(false);
-
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
+      <ViewForm
+        meeting={meeting?.data}
         onCancel={() => {
-          handleUpdateModalVisible(false);
+          handleViewModalVisible(false);
           setCurrentRow(undefined);
           setShowDetail(false);
         }}
-        updateModalVisible={updateModalVisible}
+        viewModalVisible={viewModalVisible}
         values={currentRow || {}}
       />
     </PageContainer>
