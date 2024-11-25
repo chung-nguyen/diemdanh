@@ -51,6 +51,7 @@ const refreshAccessToken = async () => {
   return null;
 };
 
+export const CHECKIN_BASEURL = (isDev ? defaultSettings.devApiUrl : '') + '/dd';
 
 /**
  * @name 错误处理
@@ -118,7 +119,7 @@ export const requestConfig: RequestConfig = {
     },
   },
 
-  baseURL: (isDev ? defaultSettings.devApiUrl : '') + '/' + defaultSettings.apiPath,
+  baseURL: (isDev ? defaultSettings.devApiUrl : '') + '/' + defaultSettings.apiPath,  
 
   // Request interceptor
   requestInterceptors: [

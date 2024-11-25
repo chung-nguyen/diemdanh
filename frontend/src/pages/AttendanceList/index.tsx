@@ -142,7 +142,7 @@ const AttendanceList: React.FC = () => {
         const link =
           meeting &&
           entity?.guestId &&
-          getCheckInLink(meeting.data._id, (entity.guestId as any)!._id);
+          getCheckInLink(entity._id);
         return (
           <CopyableQRCode
             size={256}

@@ -25,7 +25,7 @@ const ViewForm: React.FC<ViewFormProps> = ({
   const intl = useIntl();
 
   const checkInLink = useMemo(
-    () => meeting && values?.guestId && getCheckInLink(meeting._id, (values?.guestId as any)!._id),
+    () => meeting && values?.guestId && getCheckInLink(values!._id!),
     [meeting, values],
   );
 

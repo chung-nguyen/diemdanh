@@ -1,7 +1,6 @@
-import { requestConfig } from '@/request-config'
+import { CHECKIN_BASEURL, requestConfig } from '@/request-config';
 
-export const getCheckInLink = (meetingId: string, guestId: string) => {
-  const raw = meetingId + '|' + guestId;
-  const code = btoa(raw);
-  return requestConfig.baseURL + '/' + code;
-}
+export const getCheckInLink = (attendanceId: string) => {
+  const code = encodeURIComponent(btoa(attendanceId));
+  return CHECKIN_BASEURL + '/' + code;
+};

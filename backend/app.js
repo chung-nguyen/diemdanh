@@ -35,8 +35,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/', indexRouter);
+
 var api = express.Router();
-api.use('/', indexRouter);
 api.use('/auth', authRouter);
 
 api.use(async function (req, res, next) {
