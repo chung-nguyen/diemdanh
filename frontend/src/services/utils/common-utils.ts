@@ -1,5 +1,7 @@
 import { requestConfig } from '@/request-config'
 
 export const getCheckInLink = (meetingId: string, guestId: string) => {
-  return requestConfig.baseURL;
+  const raw = meetingId + '|' + guestId;
+  const code = btoa(raw);
+  return requestConfig.baseURL + '/' + code;
 }

@@ -14,6 +14,7 @@ var authRouter = require('./routes/authenticate');
 var guestRouter = require('./routes/guest');
 var meetingRouter = require('./routes/meeting');
 var attendanceRouter = require('./routes/attendance');
+const { verifyAuthorization } = require('./utils/auth-utils');
 
 dotenv.config({
   path: '.env',
@@ -38,7 +39,16 @@ var api = express.Router();
 api.use('/', indexRouter);
 api.use('/auth', authRouter);
 
-
+api.use(async function (req, res, next) {
+  try {
+    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    const mid = Math.floor(tokenSalt.length / 2);
+    await verifyAuthorization(req.headers.authorization, tokenSalt.slice(0, mid));
+    next();
+  } catch (ex) {
+    next(ex);
+  }
+});
 
 api.use('/guest', guestRouter);
 api.use('/meeting', meetingRouter);
@@ -47,12 +57,12 @@ api.use('/attendance', attendanceRouter);
 app.use('/api/v1', api);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
