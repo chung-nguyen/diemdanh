@@ -193,7 +193,7 @@ const GuestList: React.FC = () => {
               handleCreateModalVisible(true);
             }}
           >
-            <PlusOutlined /> New
+            <PlusOutlined /> Tạo mới
           </Button>,
         ]}
         request={guests}

@@ -1,5 +1,6 @@
 var express = require('express');
 const { Attendance, Guest } = require('../models');
+const { AttendanceStatus } = require('../models/attendance');
 
 var router = express.Router();
 
@@ -43,6 +44,7 @@ router.post('/', async function (req, res, next) {
   }
 
   const doc = new Attendance(Object(req.body));
+  doc.status = doc.status || AttendanceStatus.UNKNOWN;
   await doc.save();
   res.status(200).json({ data: doc.toObject(), success: true });
 });
@@ -52,7 +54,7 @@ router.put('/:id', async function (req, res, next) {
   const { id } = req.params;
   const doc = await Attendance.findOneAndUpdate(
     { _id: id },
-    Object.fromEntries(Object.entries(req.body).filter(([_, value]) => !!value)),
+    Object.fromEntries(Object.entries(req.body).filter(([_, value]) => value != null && value != undefined)),
     { new: true }
   );
   res.status(200).json({ data: doc.toObject(), success: true });

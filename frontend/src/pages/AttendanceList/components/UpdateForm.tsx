@@ -1,22 +1,24 @@
-import { DrawerForm } from '@ant-design/pro-components';
+import { DrawerForm, ProFormDateTimePicker, ProFormSelect } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
 import React, { useMemo } from 'react';
 
 import CopyableQRCode from '@/components/QRCode';
-import { type AttendanceType } from '@/services/ant-design-pro/attendance';
+import { AttedanceStatusOptions, type AttendanceType } from '@/services/ant-design-pro/attendance';
 import { MeetingType } from '@/services/ant-design-pro/meeting';
 import { getCheckInLink } from '@/services/utils/common-utils';
 import { Flex, Form, Input } from 'antd';
 
 export type ViewFormProps = {
   meeting: MeetingType | undefined;
+  onSubmit: (values: AttendanceType) => Promise<void>;
   onCancel: () => void;
   viewModalVisible: boolean;
   values: Partial<AttendanceType>;
 };
 
-const ViewForm: React.FC<ViewFormProps> = ({
+const UpdateForm: React.FC<ViewFormProps> = ({
   meeting,
+  onSubmit,
   onCancel,
   viewModalVisible,
   values,
@@ -33,6 +35,7 @@ const ViewForm: React.FC<ViewFormProps> = ({
     <DrawerForm
       width={600}
       open={viewModalVisible}
+      onFinish={onSubmit}
       drawerProps={{
         onClose: onCancel,
         destroyOnClose: true,
@@ -60,8 +63,19 @@ const ViewForm: React.FC<ViewFormProps> = ({
           />
         )}
       </Flex>
+
+      <ProFormSelect
+        name="status"
+        label="Tình trạng"
+        options={AttedanceStatusOptions}
+      />
+      <ProFormDateTimePicker
+        colProps={{ span: 24 }}
+        name="checkInTime"
+        label="Thời điểm tham dự"
+      />
     </DrawerForm>
   );
 };
 
-export default ViewForm;
+export default UpdateForm;

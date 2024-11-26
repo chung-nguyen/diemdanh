@@ -1,13 +1,14 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, useQuery } from '@umijs/max';
+import { history, useIntl, useQuery } from '@umijs/max';
 import { Button, message, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
 import {
   addAttendance,
+  AttedanceStatusOptions,
   attendances,
   removeAttendances,
   updateAttendance,
@@ -17,7 +18,7 @@ import { getMeeting } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
-import ViewForm from './components/ViewForm';
+import UpdateForm from './components/UpdateForm';
 import { getCheckInLink } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 
@@ -34,9 +35,14 @@ const handleAdd = async (fields: AttendanceType) => {
     hide();
     message.success('Đã thêm thành công');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     hide();
-    message.error('Vui lòng thử lại!');
+
+    if (error.response?.data?.message && error.response.data.message.startsWith('E11000')) {
+      message.error('Khách mời đã có trong danh sách! Vui lòng chọn khách mời khác.');
+    } else {
+      message.error('Vui lòng thử lại!');
+    }
     return false;
   }
 };
@@ -89,7 +95,7 @@ const handleRemove = async (selectedRows: AttendanceType[]) => {
 
 const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
-  const [viewModalVisible, handleViewModalVisible] = useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<AttendanceType>();
@@ -120,7 +126,7 @@ const AttendanceList: React.FC = () => {
       render: (dom, entity) => (
         <a
           onClick={() => {
-            handleViewModalVisible(true);
+            handleUpdateModalVisible(true);
             setCurrentRow(entity);
           }}
         >
@@ -139,10 +145,7 @@ const AttendanceList: React.FC = () => {
       dataIndex: 'guestId',
       sorter: false,
       render: (dom, entity) => {
-        const link =
-          meeting &&
-          entity?.guestId &&
-          getCheckInLink(entity._id);
+        const link = meeting && entity?.guestId && getCheckInLink(entity._id);
         return (
           <CopyableQRCode
             size={256}
@@ -153,6 +156,16 @@ const AttendanceList: React.FC = () => {
           >
             {' '}
           </CopyableQRCode>
+        );
+      },
+    },
+    {
+      title: 'Tình trạng',
+      dataIndex: 'status',
+      sorter: true,
+      render: (dom, entity) => {
+        return (
+          <span>{AttedanceStatusOptions.find((it) => it.value === entity.status)?.label}</span>
         );
       },
     },
@@ -212,7 +225,17 @@ const AttendanceList: React.FC = () => {
               handleCreateModalVisible(true);
             }}
           >
-            <PlusOutlined /> New
+            <PlusOutlined /> Tạo mới
+          </Button>,
+
+          <Button
+            type="default"
+            key="default"
+            onClick={() => {
+              history.push(`/meeting/report?id=${meetingId}`);
+            }}
+          >
+            <BookOutlined /> Báo cáo
           </Button>,
         ]}
         request={attendances(meetingId)}
@@ -276,14 +299,27 @@ const AttendanceList: React.FC = () => {
         }}
       />
 
-      <ViewForm
+      <UpdateForm
         meeting={meeting?.data}
+        onSubmit={async (value) => {
+          const success = await handleUpdate(value, currentRow);
+
+          if (success) {
+            handleUpdateModalVisible(false);
+            setCurrentRow(undefined);
+            setShowDetail(false);
+
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
         onCancel={() => {
-          handleViewModalVisible(false);
+          handleUpdateModalVisible(false);
           setCurrentRow(undefined);
           setShowDetail(false);
         }}
-        viewModalVisible={viewModalVisible}
+        viewModalVisible={updateModalVisible}
         values={currentRow || {}}
       />
     </PageContainer>

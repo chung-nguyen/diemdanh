@@ -3,16 +3,27 @@
 import { request } from '@umijs/max';
 import { SortOrder } from 'antd/es/table/numbererface';
 
-export enum AttendanceSTatus {
+export enum AttendanceStatus {
   UNKNOWN = 0,
   CHECKED_IN = 1,
 }
+
+export const AttedanceStatusOptions = [
+  {
+    label: 'Chưa tham dự',
+    value: 0
+  },
+  {
+    label: 'Đã tham dự',
+    value: 1
+  },
+]
 
 export type AttendanceType = {
   _id: string;
   meetingId: string;
   guestId: string;
-  status: AttendanceSTatus;
+  status: AttendanceStatus;
   checkInTime: Date;
   createdAt?: Date;
   updatedAt?: Date;

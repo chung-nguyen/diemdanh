@@ -36,6 +36,13 @@ export default [
     hideInMenu: true
   },
   {
+    name: 'Báo cáo',
+    icon: 'table',
+    path: '/meeting/report',
+    component: './MeetingReport',
+    hideInMenu: true
+  },
+  {
     name: 'Khách mời',
     icon: 'table',
     path: '/guest',

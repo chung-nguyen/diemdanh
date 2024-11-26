@@ -188,7 +188,7 @@ const MeetingList: React.FC = () => {
               handleCreateModalVisible(true);
             }}
           >
-            <PlusOutlined /> New
+            <PlusOutlined /> Tạo mới
           </Button>,
         ]}
         request={meetings}
