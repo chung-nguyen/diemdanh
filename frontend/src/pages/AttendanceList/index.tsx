@@ -170,6 +170,12 @@ const AttendanceList: React.FC = () => {
       },
     },
     {
+      title: 'Thời điểm',
+      dataIndex: 'checkInTime',
+      render: (dom, entity) => <Space>{dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>,
+      sorter: true,
+    },
+    {
       title: 'Created At',
       dataIndex: 'createdAt',
       render: (dom, entity) => <Space>{dayjs(entity.createdAt).format('DD MMM YYYY HH:mm')}</Space>,

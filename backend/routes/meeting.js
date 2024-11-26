@@ -1,5 +1,5 @@
 var express = require('express');
-const { Meeting } = require('../models');
+const { Meeting, Attendance } = require('../models');
 
 var router = express.Router();
 
@@ -19,6 +19,16 @@ router.get('/', async function (req, res, next) {
   const [data, total] = await Promise.all([findCursor.exec(), Meeting.countDocuments(filter)]);
 
   res.status(200).json({ data, total, success: true });
+});
+
+router.get('/report/:id', async function (req, res, next) {
+  const { id } = req.params;
+  const [meeting, attendances] = await Promise.all([
+    Meeting.findById(id).lean(),
+    Attendance.find({ meetingId: id }).lean(),
+  ]);
+
+  res.status(200).json({ success: true, data: { meeting, attendances } });
 });
 
 router.get('/:id', async function (req, res, next) {

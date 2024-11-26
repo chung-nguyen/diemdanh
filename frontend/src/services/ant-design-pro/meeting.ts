@@ -2,6 +2,7 @@
 /* eslnumber-disable */
 import { request } from '@umijs/max';
 import { SortOrder } from 'antd/es/table/numbererface';
+import { AttendanceType } from './attendance';
 
 export type MeetingType = {
   _id: string;
@@ -59,8 +60,24 @@ export async function getMeeting(id: string) {
   return response;
 }
 
+/** Get a single meeting GET /meetings/report/:id */
+export async function getMeetingReport(id: string) {
+  const response = await request<{
+    data: { meeting: MeetingType; attendances: AttendanceType[] };
+    success?: boolean;
+  }>(`/meeting/report/${id}`, {
+    method: 'GET',
+    params: {},
+  });
+
+  return response.data;
+}
+
 /** Update meeting PUT /meetings */
-export async function updateMeeting(data: { [key: string]: any }, options?: { [key: string]: any }) {
+export async function updateMeeting(
+  data: { [key: string]: any },
+  options?: { [key: string]: any },
+) {
   return request<{ success: boolean; data: MeetingType }>(`/meeting/${data._id}`, {
     data,
     method: 'PUT',
