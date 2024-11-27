@@ -1,9 +1,10 @@
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
-import { Button, Descriptions, Space } from 'antd';
+import { Button, Descriptions, message, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useMemo, useRef, useState } from 'react';
+import writeXlsxFile from 'write-excel-file';
 
 import { getMeetingReport, type MeetingType } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
@@ -71,13 +72,21 @@ const MeetingReport: React.FC = () => {
       title: 'Thời điểm',
       dataIndex: 'time',
       render: (dom, entity) => (
-        <Space>{dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>
+        <Space>{dayjs(entity.checkInTime).format('DD/MM/YYYY HH:mm')}</Space>
       ),
       sorter: true,
     },
   ];
 
-  const items: DescriptionsProps['items'] = [    
+  const items: DescriptionsProps['items'] = [
+    {
+      label: 'Hội nghị',
+      children: meeting?.name,
+    },
+    {
+      label: 'Ngày tổ chức',
+      children: dayjs(meeting?.time).format('DD/MM/YYYY HH:mm'),
+    },
     {
       label: 'Tổng tham dự',
       children: checkedInCount,
@@ -92,13 +101,60 @@ const MeetingReport: React.FC = () => {
     },
   ];
 
+  const saveExcel = async () => {
+    if (!meeting || !attendances) {
+      message.error('Chưa có dữ liệu!');
+      return;
+    }
+
+    const schema = [
+      {
+        column: 'Tên',
+        type: String,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.fullName,
+      },
+      {
+        column: 'Email',
+        type: String,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.email,
+      },
+      {
+        column: 'Tình trạng',
+        type: String,
+        value: (entity: AttendanceType) =>
+          AttedanceStatusOptions.find((it) => it.value === entity.status)?.label,
+      },
+      {
+        column: 'Giờ tham dự',
+        type: Date,
+        format: 'HH:mm',
+        value: (entity: AttendanceType) =>
+          !!entity.checkInTime ? new Date(entity.checkInTime) : null,
+      },
+      {
+        column: 'Ngày tham dự',
+        type: Date,
+        format: 'dd/mm/yyyy',
+        value: (entity: AttendanceType) =>
+          !!entity.checkInTime ? new Date(entity.checkInTime) : null,
+      },
+    ];
+
+    await writeXlsxFile(attendances, {
+      schema,
+      fileName: `Báo cáo Hội nghị - ${meeting.name}.xlsx`,
+    });
+
+    message.success('Đã lưu báo cáo thành công!');
+  };
+
   return (
     <PageContainer>
       <Space size="large" direction="vertical" style={{ width: '100%' }}>
         <Descriptions
           title="Tổng kết"
           bordered
-          column={{ xs: 1, sm: 1, md: 1, lg: 1, xl: 1, xxl: 1 }}
+          column={{ xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 2 }}
           items={items}
         />
 
@@ -117,7 +173,7 @@ const MeetingReport: React.FC = () => {
             pageSizeOptions: [20, 50, 100, 200],
           }}
           toolBarRender={() => [
-            <Button type="primary" key="primary" onClick={() => {}}>
+            <Button type="primary" key="primary" onClick={() => saveExcel()}>
               <SaveOutlined /> Lưu Excel
             </Button>,
           ]}
