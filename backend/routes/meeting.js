@@ -25,7 +25,7 @@ router.get('/report/:id', async function (req, res, next) {
   const { id } = req.params;
   const [meeting, attendances] = await Promise.all([
     Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id }).lean(),
+    Attendance.find({ meetingId: id }).populate('guestId').lean(),
   ]);
 
   res.status(200).json({ success: true, data: { meeting, attendances } });
