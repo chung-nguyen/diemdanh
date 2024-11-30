@@ -5,9 +5,12 @@ import { SortOrder } from 'antd/es/table/numbererface';
 
 export type GuestType = {
   _id: string;
+  idNumber: string;
+  phoneNumber: string;
   email: string;
   fullName: string;
   office: string;
+  workplace: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

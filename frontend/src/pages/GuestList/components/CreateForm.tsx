@@ -39,9 +39,12 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         value: '',
       }}
     >
+      <ProFormText colProps={{ span: 24 }} name="idNumber" label="Số CCCD" />
+      <ProFormText colProps={{ span: 24 }} name="phoneNumber" label="Điện thoại" />
       <ProFormText colProps={{ span: 24 }} name="email" label="Email" />
       <ProFormText colProps={{ span: 24 }} name="fullName" label="Tên" />
       <ProFormText colProps={{ span: 24 }} name="office" label="Chức vụ" />
+      <ProFormText colProps={{ span: 24 }} name="workplace" label="Đơn vị" />
     </DrawerForm>
   );
 };

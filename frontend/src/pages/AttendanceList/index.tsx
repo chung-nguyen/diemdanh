@@ -1,8 +1,8 @@
-import { BookOutlined, PlusOutlined } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
-import { Button, message, Popconfirm, Space } from 'antd';
+import { Avatar, Button, message, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
@@ -19,7 +19,7 @@ import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
-import { getCheckInLink } from '@/services/utils/common-utils';
+import { getCheckInLink, getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 
 /**
@@ -118,27 +118,59 @@ const AttendanceList: React.FC = () => {
     },
   );
 
-  const columns: ProColumns<AttendanceType>[] = [
+  const columns: ProColumns<AttendanceType>[] = [    
+    {
+      title: 'Số ghế',
+      dataIndex: 'seat',
+      sorter: true,
+    },
     {
       title: 'Tên khách mời',
       dataIndex: 'guestId',
       sorter: true,
       render: (dom, entity) => (
-        <a
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(entity);
-          }}
-        >
-          {(entity.guestId as any)?.fullName}
-        </a>
+        <Space>
+          <Avatar src={getPhotoURL((entity.guestId as any)?.idNumber + '.jpg')} icon={<UserOutlined />} />
+          <a
+            onClick={() => {
+              handleUpdateModalVisible(true);
+              setCurrentRow(entity);
+            }}
+          >
+            {(entity.guestId as any)?.fullName}
+          </a>
+        </Space>
       ),
+    },
+    {
+      title: 'CCCD',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.idNumber,
+    },
+    {
+      title: 'Số điện thoại',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.phoneNumber,
     },
     {
       title: 'Email',
       dataIndex: 'guestId',
       sorter: true,
       render: (dom, entity) => (entity.guestId as any)?.email,
+    },
+    {
+      title: 'Chức vụ',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.office,
+    },
+    {
+      title: 'Đơn vị',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.workplace,
     },
     {
       title: 'QR Code',

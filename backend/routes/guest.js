@@ -25,7 +25,7 @@ router.get('/', async function (req, res, next) {
 router.get('/search', async function (req, res, next) {
   const { q, c } = req.query;
   const results = await Guest.find({
-    email: { $regex: q, $options: 'i' },
+    idNumber: { $regex: q, $options: 'i' },
   }).limit(Math.min(c || 0, MAX_SUGGESTIONS));
   res.status(200).json(results);
 });

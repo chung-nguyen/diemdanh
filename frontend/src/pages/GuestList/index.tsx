@@ -1,7 +1,7 @@
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { useIntl, history } from '@umijs/max';
-import { Button, message, Popconfirm, Space, Typography } from 'antd';
+import { Avatar, Button, message, Popconfirm, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
@@ -15,9 +15,10 @@ import {
 } from '@/services/ant-design-pro/guest';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, UserOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
+import { getPhotoURL } from '@/services/utils/common-utils';
 
 /**
  * Add node
@@ -102,19 +103,32 @@ const GuestList: React.FC = () => {
 
   const columns: ProColumns<GuestType>[] = [
     {
-      title: 'Email',
-      dataIndex: 'email',
+      title: 'Số CCCD',
+      dataIndex: 'idNumber',
       sorter: true,
       render: (dom, entity) => (
-        <a
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(entity);
-          }}
-        >
-          {dom}
-        </a>
+        <Space>
+          <Avatar src={getPhotoURL(entity.idNumber + '.jpg')} icon={<UserOutlined />} />
+          <a
+            onClick={() => {
+              handleUpdateModalVisible(true);
+              setCurrentRow(entity);
+            }}
+          >
+            {dom}
+          </a>
+        </Space>
       ),
+    },
+    {
+      title: 'Điện thoại',
+      dataIndex: 'phoneNumber',
+      sorter: true
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      sorter: true
     },
     {
       title: 'Tên',
@@ -124,6 +138,11 @@ const GuestList: React.FC = () => {
     {
       title: 'Chức vụ',
       dataIndex: 'office',
+      sorter: true,
+    },
+    {
+      title: 'Đơn vị',
+      dataIndex: 'workplace',
       sorter: true,
     },
     {

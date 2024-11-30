@@ -1,12 +1,18 @@
-import { DrawerForm, ProFormDateTimePicker, ProFormSelect } from '@ant-design/pro-components';
+import {
+  DrawerForm,
+  ProFormDateTimePicker,
+  ProFormSelect,
+  ProFormText,
+} from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
 import React, { useMemo } from 'react';
 
 import CopyableQRCode from '@/components/QRCode';
 import { AttedanceStatusOptions, type AttendanceType } from '@/services/ant-design-pro/attendance';
 import { MeetingType } from '@/services/ant-design-pro/meeting';
-import { getCheckInLink } from '@/services/utils/common-utils';
-import { Flex, Form, Input } from 'antd';
+import { getCheckInLink, getPhotoURL } from '@/services/utils/common-utils';
+import { Avatar, Flex, Form, Input, Space } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 
 export type ViewFormProps = {
   meeting: MeetingType | undefined;
@@ -33,7 +39,7 @@ const UpdateForm: React.FC<ViewFormProps> = ({
 
   return (
     <DrawerForm
-      width={600}
+      width={768}
       open={viewModalVisible}
       onFinish={onSubmit}
       drawerProps={{
@@ -45,15 +51,32 @@ const UpdateForm: React.FC<ViewFormProps> = ({
       <Form.Item label="Hội nghị" style={{ width: '100%' }}>
         <Input readOnly value={meeting?.name} />
       </Form.Item>
-      <Form.Item label="Khách mời" style={{ width: '100%' }}>
+      <ProFormText colProps={{ span: 24 }} name="seat" label="Số ghế" />
+      <Form.Item label="Tên khách mời" style={{ width: '100%' }}>
         <Input readOnly value={(values?.guestId as any)?.fullName} />
+      </Form.Item>
+      <Space direction="horizontal" size="middle">
+        <Form.Item label="Số CCCD" style={{ width: '100%' }}>
+          <Input readOnly value={(values?.guestId as any)?.idNumber} />
+        </Form.Item>
+        <Form.Item label="Số điện thoại" style={{ width: '100%' }}>
+          <Input readOnly value={(values?.guestId as any)?.phoneNumber} />
+        </Form.Item>
+      </Space>
+      <Form.Item label="Email" style={{ width: '100%' }}>
+        <Input readOnly value={(values?.guestId as any)?.email} />
       </Form.Item>
 
       <Form.Item label="Link điểm danh" style={{ width: '100%' }}>
         <Input readOnly value={checkInLink} />
       </Form.Item>
 
-      <Flex justify="center">
+      <Flex justify="center" gap={32}>
+        <Avatar
+          size={256}
+          src={getPhotoURL((values?.guestId as any)?.idNumber + '.jpg')}
+          icon={<UserOutlined />}
+        />
         {!!checkInLink && (
           <CopyableQRCode
             size={256}
@@ -64,16 +87,8 @@ const UpdateForm: React.FC<ViewFormProps> = ({
         )}
       </Flex>
 
-      <ProFormSelect
-        name="status"
-        label="Tình trạng"
-        options={AttedanceStatusOptions}
-      />
-      <ProFormDateTimePicker
-        colProps={{ span: 24 }}
-        name="checkInTime"
-        label="Thời điểm tham dự"
-      />
+      <ProFormSelect name="status" label="Tình trạng" options={AttedanceStatusOptions} />
+      <ProFormDateTimePicker colProps={{ span: 24 }} name="checkInTime" label="Thời điểm tham dự" />
     </DrawerForm>
   );
 };

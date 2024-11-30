@@ -49,7 +49,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         queryKey="autocomplete-guests"
         fetchSuggestions={async (query: string) => {
           const data = await search(query, 10);
-          return data?.map((it) => ({ value: it.email, label: it.email }));
+          return data?.map((it) => ({ value: it.idNumber, label: it.idNumber }));
         }}
       />
     </DrawerForm>

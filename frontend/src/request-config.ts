@@ -51,6 +51,7 @@ const refreshAccessToken = async () => {
   return null;
 };
 
+export const PHOTO_BASE_URL = (isDev ? defaultSettings.devApiUrl : '') + '/photo';
 export const CHECKIN_BASEURL = (isDev ? defaultSettings.devApiUrl : '') + '/dd';
 
 /**
