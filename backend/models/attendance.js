@@ -13,7 +13,8 @@ exports.Attendance = mongoose.model('Attendance', {
   guestId: {
     type: mongoose.Types.ObjectId,
     ref: 'Guest'
-  },    
+  },
+  seat: Number,
   status: Number,
   checkInTime: Date,
 });

@@ -15,6 +15,7 @@ var guestRouter = require('./routes/guest');
 var meetingRouter = require('./routes/meeting');
 var attendanceRouter = require('./routes/attendance');
 const { verifyAuthorization } = require('./utils/auth-utils');
+const { DEFAULT_SETTINGS } = require('./config');
 
 dotenv.config({
   path: '.env',
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/photo', express.static(DEFAULT_SETTINGS.photoPath));
 
 app.use('/', indexRouter);
 
