@@ -1,5 +1,8 @@
+var path = require('path');
 var express = require('express');
+var Excel = require('exceljs');
 const { Meeting, Attendance } = require('../models');
+const { DEFAULT_SETTINGS } = require('../config');
 
 var router = express.Router();
 
@@ -59,5 +62,47 @@ router.put('/:id', async function (req, res, next) {
   );
   res.status(200).json({ data: doc.toObject(), success: true });
 });
+
+router.post('/import', async function (req, res) {
+  let sampleFile;
+  let uploadPath;
+
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  sampleFile = req.files.file;
+  uploadPath = DEFAULT_SETTINGS.uploadPath;
+
+  const destFilePath = path.join(uploadPath, sampleFile.name);
+  sampleFile.mv(destFilePath, async function (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ success: false });
+      return;
+    }
+
+    await analyzeMeetingSheet(destFilePath);
+
+    res.status(200).json({ success: true });
+  });
+});
+
+async function analyzeMeetingSheet(filePath) {
+  const workbook = new Excel.Workbook();
+  await workbook.xlsx.readFile(filePath);
+
+  if (!workbook) {
+    res.status(500).json({ success: false });
+    return;
+  }
+
+  const worksheet = workbook.worksheets[0];
+  console.log(worksheet);
+
+  worksheet.eachRow(function (row, rowNumber) {
+    console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));
+  });
+}
 
 module.exports = router;

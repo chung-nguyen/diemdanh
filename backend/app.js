@@ -6,6 +6,7 @@ var logger = require('morgan');
 var dotenv = require('dotenv');
 var mongoose = require('mongoose');
 var cors = require('cors');
+var fileUpload = require('express-fileupload');
 
 require('./plugins/express-async-error');
 
@@ -36,6 +37,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/photo', express.static(DEFAULT_SETTINGS.photoPath));
+app.use(
+  fileUpload({
+    limits: { fileSize: 128 * 1024 * 1024 },
+  })
+);
 
 app.use('/', indexRouter);
 

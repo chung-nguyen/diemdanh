@@ -15,9 +15,10 @@ import {
 } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
-import { PlusOutlined } from '@ant-design/icons';
+import { ImportOutlined, PlusOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
+import ImportForm from './components/ImportForm';
 
 /**
  * Add node
@@ -88,6 +89,7 @@ const handleRemove = async (selectedRows: MeetingType[]) => {
 const MeetingList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [importModalVisible, handleImportModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<MeetingType>();
@@ -190,6 +192,15 @@ const MeetingList: React.FC = () => {
           >
             <PlusOutlined /> Tạo mới
           </Button>,
+          <Button
+            type="default"
+            key="default"
+            onClick={() => {
+              handleImportModalVisible(true);
+            }}
+          >
+            <ImportOutlined /> Nhập Excel
+          </Button>,
         ]}
         request={meetings}
         columns={columns}
@@ -268,6 +279,13 @@ const MeetingList: React.FC = () => {
         }}
         updateModalVisible={updateModalVisible}
         values={currentRow || {}}
+      />
+
+      <ImportForm
+        onCancel={() => {
+          handleImportModalVisible(false);
+        }}
+        visible={importModalVisible}
       />
     </PageContainer>
   );
