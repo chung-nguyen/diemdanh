@@ -20,7 +20,7 @@ function jwtSign(payload, secret, expiresIn) {
   });
 }
 
-router.get('/', async function (req, res, next) {
+router.get('/home', async function (req, res, next) {
   res.render('index');
 });
 

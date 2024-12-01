@@ -53,7 +53,7 @@ const refreshAccessToken = async () => {
 
 export const API_BASE_URL = (isDev ? defaultSettings.devApiUrl : '') + '/' + defaultSettings.apiPath;
 export const PHOTO_BASE_URL = (isDev ? defaultSettings.devApiUrl : '') + '/photo';
-export const CHECKIN_BASEURL = (isDev ? defaultSettings.devApiUrl : '') + '/dd';
+export const CHECKIN_BASEURL = (isDev ? defaultSettings.devApiUrl : window.location.origin) + '/dd';
 
 /**
  * @name 错误处理
