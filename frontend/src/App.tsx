@@ -55,7 +55,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
   return {
     actionsRender: () => [],
     avatarProps: {
-      src: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg',
+      src: '/images/logo.jpg',
       title: <AvatarName />,
       render: (_, avatarChildren) => {
         return <AvatarDropdown menu>{avatarChildren}</AvatarDropdown>;

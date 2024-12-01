@@ -101,13 +101,13 @@ const Login: React.FC = () => {
       >
         <LoginFormPage
           backgroundImageUrl="/images/bg.jpg"
-          logo="https://github.githubassets.com/favicons/favicon.png"
+          logo="/images/logo.jpg"
           title="Điểm danh"
           containerStyle={{
             backgroundColor: 'rgba(255, 255, 255,0.65)',
             backdropFilter: 'blur(4px)',
           }}
-          subTitle="App điểm danh khách mời"
+          subTitle="Quản lý khách mời hội nghị"
           submitter={{
             searchConfig: { submitText: 'Đăng nhập', resetText: 'Xóa' },
           }}

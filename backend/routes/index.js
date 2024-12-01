@@ -20,6 +20,14 @@ function jwtSign(payload, secret, expiresIn) {
   });
 }
 
+router.get('/', async function (req, res, next) {
+  res.render('index');
+});
+
+router.get('/dd/login', async function (req, res, next) {
+  res.render('login', { code: 'X' });
+});
+
 router.post('/dd/login/:code', async function (req, res, next) {
   const { code } = req.params;
 
@@ -51,7 +59,7 @@ router.post('/dd/login/:code', async function (req, res, next) {
   res.redirect(`/dd/${code}`);
 });
 
-router.get('/dd/:code', async function (req, res, next) {
+router.get('/dd/confirm/:code', async function (req, res, next) {
   const { code } = req.params;
 
   const cookies = req.cookies || {};
@@ -73,12 +81,60 @@ router.get('/dd/:code', async function (req, res, next) {
           attendance.checkInTime = new Date();
           await attendance.save();
         }
+      }
+    } catch (ex) {
+      console.error(ex);
+    }
+  } catch (ex) {
+    console.error(ex);
+  }
+
+  res.redirect(`/dd/${code}`);
+});
+
+router.get('/dd/:code', async function (req, res, next) {
+  const { code } = req.params;
+
+  if (code === 'X') {
+    res.render('attendance', { error: 'Đã login vào hệ thống' });
+    return;
+  }
+
+  const cookies = req.cookies || {};
+  try {
+    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    const mid = Math.floor(tokenSalt.length / 2);
+    await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+
+    try {
+      const attendanceId = Buffer.from(code, 'base64').toString('ascii');
+
+      const attendance = await Attendance.findById(attendanceId).populate('guestId meetingId');
+      if (attendance) {
+        const guest = attendance.guestId;
+        const meeting = attendance.meetingId;
+
+        // if (attendance.status !== AttendanceStatus.CHECKED_IN) {
+        //   attendance.status = AttendanceStatus.CHECKED_IN;
+        //   attendance.checkInTime = new Date();
+        //   await attendance.save();
+        // }
+
+        const guestImageURL = `/photo/${guest.idNumber}.jpg`;
 
         res.render('attendance', {
+          code,
+          guestImageURL,
           attendTime: moment(attendance.checkInTime).format('hh:mm DD/MM/YYYY'),
           guestName: guest.fullName,
+          guestID: guest.idNumber,
           guestEmail: guest.email,
           meetingName: meeting.name,
+          guestOffice: guest.office,
+          guestWorkplace: guest.workplace,
+          guestPhoneNumber: guest.phoneNumber,
+          guestEmail: guest.email,
+          isCheckedIn: attendance.status === AttendanceStatus.CHECKED_IN,
         });
       } else {
         res.render('attendance', { error: 'Mã QR không hợp lệ' });
