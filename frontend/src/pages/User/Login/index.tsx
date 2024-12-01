@@ -100,11 +100,11 @@ const Login: React.FC = () => {
         }}
       >
         <LoginFormPage
-          backgroundImageUrl="https://images.unsplash.com/photo-1693474358354-f3d31c5c5af8?w=1080&auto=format&fit=crop"
+          backgroundImageUrl="/images/bg.jpg"
           logo="https://github.githubassets.com/favicons/favicon.png"
           title="Điểm danh"
           containerStyle={{
-            backgroundColor: 'rgba(0, 0, 0,0.65)',
+            backgroundColor: 'rgba(255, 255, 255,0.65)',
             backdropFilter: 'blur(4px)',
           }}
           subTitle="App điểm danh khách mời"

@@ -102,3 +102,15 @@ export async function removeMeetings(data: { ids: string[] }, options?: { [key: 
     ...(options || {}),
   });
 }
+
+export async function generateInviteSheet(id: string) {
+  const response = await request<{
+    data: { meeting: MeetingType; attendances: AttendanceType[] };
+    success?: boolean;
+  }>(`/meeting/generate/${id}`, {
+    method: 'GET',
+    params: {},
+  });
+
+  return response.data; 
+}

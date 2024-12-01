@@ -1,4 +1,4 @@
-import { BookOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
@@ -14,7 +14,7 @@ import {
   updateAttendance,
   type AttendanceType,
 } from '@/services/ant-design-pro/attendance';
-import { getMeeting } from '@/services/ant-design-pro/meeting';
+import { generateInviteSheet, getMeeting } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
@@ -87,6 +87,21 @@ const handleRemove = async (selectedRows: AttendanceType[]) => {
     message.success('Xóa thành công!');
     return true;
   } catch (error) {
+    hide();
+    message.error('Vui lòng thử lại!');
+    return false;
+  }
+};
+
+const handleGenerateInviteSHeet = async (id: string) => {
+  const hide = message.loading('Đang xử lý');
+
+  try {
+    await generateInviteSheet(id);
+    hide();
+    message.success('Đã xử lý thành công');
+    return true;
+  } catch (error: any) {
     hide();
     message.error('Vui lòng thử lại!');
     return false;
@@ -264,6 +279,14 @@ const AttendanceList: React.FC = () => {
             }}
           >
             <PlusOutlined /> Tạo mới
+          </Button>,
+
+          <Button
+            type="default"
+            key="default"
+            onClick={() => handleGenerateInviteSHeet(meetingId)}
+          >
+            <SaveOutlined /> Xuất file
           </Button>,
 
           <Button
