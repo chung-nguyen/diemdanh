@@ -19,7 +19,7 @@ import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
-import { getPhotoURL } from '@/services/utils/common-utils';
+import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 
 /**
@@ -195,7 +195,7 @@ const AttendanceList: React.FC = () => {
       dataIndex: 'guestId',
       sorter: false,
       render: (dom, entity) => {
-        const link = meeting && entity?.guestId && checkInURL + '/' + entity._id;
+        const link = meeting && entity?.guestId && buildCheckInURL(checkInURL!, entity._id);
         return (
           <CopyableQRCode
             size={256}

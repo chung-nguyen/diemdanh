@@ -10,7 +10,7 @@ import React, { useMemo } from 'react';
 import CopyableQRCode from '@/components/QRCode';
 import { AttedanceStatusOptions, type AttendanceType } from '@/services/ant-design-pro/attendance';
 import { getCheckInURL, MeetingType } from '@/services/ant-design-pro/meeting';
-import { getPhotoURL } from '@/services/utils/common-utils';
+import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
 import { UserOutlined } from '@ant-design/icons';
 import { Avatar, Flex, Form, Input, Space } from 'antd';
 
@@ -33,7 +33,7 @@ const UpdateForm: React.FC<ViewFormProps> = ({
   const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
 
   const checkInLink = useMemo(
-    () => meeting && values?.guestId && checkInURL + '/' + values!._id!,
+    () => meeting && values?.guestId && buildCheckInURL(checkInURL!, values!._id!),
     [meeting, values, checkInURL],
   );
 
