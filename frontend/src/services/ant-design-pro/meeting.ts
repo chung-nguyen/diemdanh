@@ -112,5 +112,13 @@ export async function generateInviteSheet(id: string) {
     params: {},
   });
 
-  return response.data; 
+  return response.data;
+}
+
+export async function getCheckInURL() {
+  const response = await request<string>('/meeting/checkin-url', {
+    method: 'GET',
+  });
+
+  return response;
 }

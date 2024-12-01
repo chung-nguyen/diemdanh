@@ -28,6 +28,10 @@ router.get('/', async function (req, res, next) {
   res.status(200).json({ data, total, success: true });
 });
 
+router.get('/checkin-url', function (req, res, next) {
+  res.status(200).send(DEFAULT_SETTINGS.checkInURL);
+});
+
 router.get('/generate/:id', async function (req, res, next) {
   const { id } = req.params;
   const [meeting, attendances] = await Promise.all([

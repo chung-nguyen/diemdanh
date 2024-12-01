@@ -4,15 +4,15 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
-import { useIntl } from '@umijs/max';
+import { useQuery } from '@umijs/max';
 import React, { useMemo } from 'react';
 
 import CopyableQRCode from '@/components/QRCode';
 import { AttedanceStatusOptions, type AttendanceType } from '@/services/ant-design-pro/attendance';
-import { MeetingType } from '@/services/ant-design-pro/meeting';
-import { getCheckInLink, getPhotoURL } from '@/services/utils/common-utils';
-import { Avatar, Flex, Form, Input, Space } from 'antd';
+import { getCheckInURL, MeetingType } from '@/services/ant-design-pro/meeting';
+import { getPhotoURL } from '@/services/utils/common-utils';
 import { UserOutlined } from '@ant-design/icons';
+import { Avatar, Flex, Form, Input, Space } from 'antd';
 
 export type ViewFormProps = {
   meeting: MeetingType | undefined;
@@ -30,11 +30,11 @@ const UpdateForm: React.FC<ViewFormProps> = ({
   values,
   ...props
 }) => {
-  const intl = useIntl();
+  const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
 
   const checkInLink = useMemo(
-    () => meeting && values?.guestId && getCheckInLink(values!._id!),
-    [meeting, values],
+    () => meeting && values?.guestId && checkInURL + '/' + values!._id!,
+    [meeting, values, checkInURL],
   );
 
   return (

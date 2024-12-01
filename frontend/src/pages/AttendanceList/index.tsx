@@ -14,12 +14,12 @@ import {
   updateAttendance,
   type AttendanceType,
 } from '@/services/ant-design-pro/attendance';
-import { generateInviteSheet, getMeeting } from '@/services/ant-design-pro/meeting';
+import { generateInviteSheet, getCheckInURL, getMeeting } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
-import { getCheckInLink, getPhotoURL } from '@/services/utils/common-utils';
+import { getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 
 /**
@@ -120,7 +120,7 @@ const AttendanceList: React.FC = () => {
     height: { show: false },
     alt: { show: false },
   });
-  const intl = useIntl();
+  const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
 
   const urlParams = new URL(window.location.href).searchParams;
   const meetingId = String(urlParams.get('id'));
@@ -133,7 +133,7 @@ const AttendanceList: React.FC = () => {
     },
   );
 
-  const columns: ProColumns<AttendanceType>[] = [    
+  const columns: ProColumns<AttendanceType>[] = [
     {
       title: 'Số ghế',
       dataIndex: 'seat',
@@ -145,7 +145,10 @@ const AttendanceList: React.FC = () => {
       sorter: true,
       render: (dom, entity) => (
         <Space>
-          <Avatar src={getPhotoURL((entity.guestId as any)?.idNumber + '.jpg')} icon={<UserOutlined />} />
+          <Avatar
+            src={getPhotoURL((entity.guestId as any)?.idNumber + '.jpg')}
+            icon={<UserOutlined />}
+          />
           <a
             onClick={() => {
               handleUpdateModalVisible(true);
@@ -192,7 +195,7 @@ const AttendanceList: React.FC = () => {
       dataIndex: 'guestId',
       sorter: false,
       render: (dom, entity) => {
-        const link = meeting && entity?.guestId && getCheckInLink(entity._id);
+        const link = meeting && entity?.guestId && checkInURL + '/' + entity._id;
         return (
           <CopyableQRCode
             size={256}
@@ -219,7 +222,9 @@ const AttendanceList: React.FC = () => {
     {
       title: 'Thời điểm',
       dataIndex: 'checkInTime',
-      render: (dom, entity) => <Space>{dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>,
+      render: (dom, entity) => (
+        <Space>{dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>
+      ),
       sorter: true,
     },
     {
@@ -281,11 +286,7 @@ const AttendanceList: React.FC = () => {
             <PlusOutlined /> Tạo mới
           </Button>,
 
-          <Button
-            type="default"
-            key="default"
-            onClick={() => handleGenerateInviteSHeet(meetingId)}
-          >
+          <Button type="default" key="default" onClick={() => handleGenerateInviteSHeet(meetingId)}>
             <SaveOutlined /> Xuất file
           </Button>,
 
