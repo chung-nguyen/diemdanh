@@ -7,16 +7,18 @@ import settingDrawer from './zh-TW/settingDrawer';
 import settings from './zh-TW/settings';
 
 export default {
-  'navBar.lang': '語言',
-  'layout.user.link.help': '幫助',
-  'layout.user.link.privacy': '隱私',
-  'layout.user.link.terms': '條款',
-  'app.preview.down.block': '下載此頁面到本地項目',
-  ...pages,
+  'navBar.lang': 'Languages',
+  'layout.user.link.help': 'Help',
+  'layout.user.link.privacy': 'Privacy',
+  'layout.user.link.terms': 'Terms',
+  'app.preview.down.block': 'Download this page to your local project',
+  'app.welcome.link.fetch-blocks': 'Get all block',
+  'app.welcome.link.block-list': 'Quickly build standard, pages based on `block` development',
   ...globalHeader,
   ...menu,
   ...settingDrawer,
   ...settings,
   ...pwa,
   ...component,
+  ...pages,
 };

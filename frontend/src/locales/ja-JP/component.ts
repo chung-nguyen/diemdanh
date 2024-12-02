@@ -1,5 +1,5 @@
 export default {
-  'component.tagSelect.expand': '展開',
-  'component.tagSelect.collapse': '折りたたむ',
-  'component.tagSelect.all': 'すべて',
+  'component.tagSelect.expand': 'Expand',
+  'component.tagSelect.collapse': 'Collapse',
+  'component.tagSelect.all': 'All',
 };

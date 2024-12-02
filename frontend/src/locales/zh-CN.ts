@@ -7,18 +7,18 @@ import settingDrawer from './zh-CN/settingDrawer';
 import settings from './zh-CN/settings';
 
 export default {
-  'navBar.lang': '语言',
-  'layout.user.link.help': '帮助',
-  'layout.user.link.privacy': '隐私',
-  'layout.user.link.terms': '条款',
-  'app.preview.down.block': '下载此页面到本地项目',
-  'app.welcome.link.fetch-blocks': '获取全部区块',
-  'app.welcome.link.block-list': '基于 block 开发，快速构建标准页面',
-  ...pages,
+  'navBar.lang': 'Languages',
+  'layout.user.link.help': 'Help',
+  'layout.user.link.privacy': 'Privacy',
+  'layout.user.link.terms': 'Terms',
+  'app.preview.down.block': 'Download this page to your local project',
+  'app.welcome.link.fetch-blocks': 'Get all block',
+  'app.welcome.link.block-list': 'Quickly build standard, pages based on `block` development',
   ...globalHeader,
   ...menu,
   ...settingDrawer,
   ...settings,
   ...pwa,
   ...component,
+  ...pages,
 };
