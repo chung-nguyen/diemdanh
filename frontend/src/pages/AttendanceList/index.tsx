@@ -122,7 +122,7 @@ const AttendanceList: React.FC = () => {
   });
   const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
 
-  const urlParams = new URL(window.location.href).searchParams;
+  const urlParams = new URLSearchParams(history.location.search);
   const meetingId = String(urlParams.get('id'));
 
   const { data: meeting, isLoading } = useQuery(
@@ -222,8 +222,8 @@ const AttendanceList: React.FC = () => {
     {
       title: 'Thời điểm',
       dataIndex: 'checkInTime',
-      render: (dom, entity) => (
-        <Space>{dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>
+      render: (dom, entity) => ( 
+        <Space>{entity.checkInTime && dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>
       ),
       sorter: true,
     },

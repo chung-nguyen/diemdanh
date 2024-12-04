@@ -27,7 +27,7 @@ const MeetingReport: React.FC = () => {
   });
   const intl = useIntl();
 
-  const urlParams = new URL(window.location.href).searchParams;
+  const urlParams = new URLSearchParams(history.location.search);
   const meetingId = String(urlParams.get('id'));
 
   const { data, isLoading } = useQuery(

@@ -103,6 +103,11 @@ router.post('/import', async function (req, res) {
     }
 
     const meeting = await analyzeMeetingSheet(destFilePath);
+    if (!meeting) {
+      console.error('Could not save meeting');
+      res.status(500).json({ success: false });
+      return;
+    }
 
     res.status(200).json({ success: true, meeting });
   });
@@ -130,7 +135,7 @@ async function analyzeMeetingSheet(filePath) {
 
   let meetingName = '';
   let headerRowScanned = false;
-  worksheet.eachRow(function (row, rowNumber) {
+  worksheet.eachRow(function (row, rowNumber) {    
     if (!headerRowScanned) {
       row.values.forEach((value, index) => {
         if (!value) {
@@ -171,6 +176,9 @@ async function analyzeMeetingSheet(filePath) {
 
   await meeting.save();
   const meetingId = meeting._id;
+  if (!meetingId) {
+    return;
+  }
 
   await Promise.all(
     guestIds.map((guestId, index) => {
@@ -230,8 +238,7 @@ async function generateExcelInviteSheet(meeting, attendances) {
 
   const title = worksheet.addRow([meeting.name]);
   title.height = 40;
-  title.getCell(1).style = { font: { bold: true, size: 16 } };
-  worksheet.addRow([]);
+  title.getCell(1).style = { font: { bold: true, size: 16 } };  
 
   const header = worksheet.addRow(['STT', 'Số CCCD', 'Họ và tên', 'Chức vụ', 'Đơn vị', 'Mã QR', 'Hình ảnh']);
   for (let i = 1; i <= 7; ++i) {
@@ -256,6 +263,8 @@ async function generateExcelInviteSheet(meeting, attendances) {
   worksheet.getColumn(5).width = 17;
   worksheet.getColumn(6).width = 16;
   worksheet.getColumn(7).width = 16;
+
+  worksheet.addRow([null]);
 
   attendances.forEach((attendance, index) => {
     const guest = attendance.guestId;

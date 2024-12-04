@@ -72,7 +72,7 @@ const Login: React.FC = () => {
         const defaultLoginSuccessMessage = 'Đăng nhập thành công';
         message.success(defaultLoginSuccessMessage);
         await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
+        const urlParams = new URLSearchParams(history.location.search);
         history.push(urlParams.get('redirect') || '/');
         return;
       }

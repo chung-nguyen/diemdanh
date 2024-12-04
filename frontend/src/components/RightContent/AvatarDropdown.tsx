@@ -44,12 +44,12 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
    */
   const loginOut = async () => {
     await outLogin();
-    const { search, pathname } = window.location;
-    const urlParams = new URL(window.location.href).searchParams;
+    const urlParams = new URLSearchParams(history.location.search);
+    const { search, pathname } = history.location;
     /** 此方法会跳转到 redirect 参数所在的位置 */
     const redirect = urlParams.get('redirect');
     // Note: There may be security issues, please note
-    if (window.location.pathname !== '/user/login' && !redirect) {
+    if (pathname !== '/user/login' && !redirect) {
       history.replace({
         pathname: '/user/login',
         search: stringify({
@@ -66,7 +66,11 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     const { key } = event;
     if (key === 'logout') {
       flushSync(() => {
-        setInitialState((s) => ({ ...s, isDev: initialState?.isDev || false, currentUser: undefined }));
+        setInitialState((s) => ({
+          ...s,
+          isDev: initialState?.isDev || false,
+          currentUser: undefined,
+        }));
       });
       loginOut();
       return;
