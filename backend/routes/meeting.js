@@ -129,6 +129,7 @@ async function analyzeMeetingSheet(filePath) {
     fullName: 0,
     office: 0,
     workplace: 0,
+    phoneNumber: 0
   };
 
   let promises = [];
@@ -158,6 +159,9 @@ async function analyzeMeetingSheet(filePath) {
         } else if (value.toLowerCase().includes('đơn vị')) {
           headerRowScanned = true;
           headerColumnIndex.workplace = index;
+        } else if (value.toLowerCase().includes('đt') || value.toLowerCase().includes('điện thoại')) {
+          headerRowScanned = true;
+          headerColumnIndex.phoneNumber = index;
         }
       });
     } else {
@@ -211,6 +215,7 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
     guest.fullName = values[headerColumnIndex.fullName] || guest.fullName;
     guest.office = values[headerColumnIndex.office] || guest.office;
     guest.workplace = values[headerColumnIndex.workplace] || guest.workplace;
+    guest.phoneNumber = values[headerColumnIndex.phoneNumber] || guest.phoneNumber;
     await guest.save();
   } else {
     guest = new Guest({
@@ -218,6 +223,7 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
       fullName: values[headerColumnIndex.fullName],
       office: values[headerColumnIndex.office],
       workplace: values[headerColumnIndex.workplace],
+      phoneNumber: values[headerColumnIndex.phoneNumber],
     });
     await guest.save();
   }
@@ -240,8 +246,8 @@ async function generateExcelInviteSheet(meeting, attendances) {
   title.height = 40;
   title.getCell(1).style = { font: { bold: true, size: 16 } };  
 
-  const header = worksheet.addRow(['STT', 'Số CCCD', 'Họ và tên', 'Chức vụ', 'Đơn vị', 'Mã QR', 'Hình ảnh']);
-  for (let i = 1; i <= 7; ++i) {
+  const header = worksheet.addRow(['STT', 'Số CCCD', 'Họ và tên', 'Chức vụ', 'Đơn vị', 'Số ĐT', 'Mã QR', 'Hình ảnh']);
+  for (let i = 1; i <= 8; ++i) {
     header.getCell(i).style = { font: { bold: true, size: 8 } };
     header.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
     header.getCell(i).border = {
@@ -258,20 +264,21 @@ async function generateExcelInviteSheet(meeting, attendances) {
 
   worksheet.getColumn(1).width = 4;
   worksheet.getColumn(2).width = 12;
-  worksheet.getColumn(3).width = 26;
+  worksheet.getColumn(3).width = 21;
   worksheet.getColumn(4).width = 12;
-  worksheet.getColumn(5).width = 17;
-  worksheet.getColumn(6).width = 16;
+  worksheet.getColumn(5).width = 12;
+  worksheet.getColumn(6).width = 10;
   worksheet.getColumn(7).width = 16;
+  worksheet.getColumn(8).width = 16;
 
   worksheet.addRow([null]);
 
   attendances.forEach((attendance, index) => {
     const guest = attendance.guestId;
 
-    const row = worksheet.addRow([index + 1, guest.idNumber, guest.fullName, guest.office, guest.workplace]);
+    const row = worksheet.addRow([index + 1, guest.idNumber, guest.fullName, guest.office, guest.workplace, guest.phoneNumber]);
     row.height = 100;
-    for (let i = 1; i <= 7; ++i) {
+    for (let i = 1; i <= 8; ++i) {
       row.getCell(i).style = { font: { size: 8 } };
       row.getCell(i).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       row.getCell(i).border = {
@@ -301,15 +308,13 @@ async function generateExcelInviteSheet(meeting, attendances) {
     })
   );
 
-  console.log(qrImageIDs);
-
   // Imaging
   attendances.forEach((attendance, index) => {
     const guest = attendance.guestId;
 
     if (qrImageIDs[index] >= 0) {
       worksheet.addImage(qrImageIDs[index], {
-        tl: { col: 5.125, row: index + 3.125 },
+        tl: { col: 6.125, row: index + 3.125 },
         ext: { width: 110, height: 110 },
         editAs: 'oneCell',
       });
@@ -323,7 +328,7 @@ async function generateExcelInviteSheet(meeting, attendances) {
       });
 
       worksheet.addImage(guestPhotoID, {
-        tl: { col: 6.125, row: index + 3.125 },
+        tl: { col: 7.125, row: index + 3.125 },
         ext: { width: 110, height: 110 },
         editAs: 'oneCell',
       });

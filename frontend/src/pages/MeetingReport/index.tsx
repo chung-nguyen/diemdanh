@@ -53,10 +53,22 @@ const MeetingReport: React.FC = () => {
       render: (dom, entity) => <span>{(entity.guestId as any)?.fullName}</span>,
     },
     {
-      title: 'Email',
+      title: 'Số ĐT',
       dataIndex: 'guestId',
       sorter: true,
-      render: (dom, entity) => (entity.guestId as any)?.email,
+      render: (dom, entity) => (entity.guestId as any)?.phoneNumber,
+    },
+    {
+      title: 'Chức vụ',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.office,
+    },
+    {
+      title: 'Đơn vị',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => (entity.guestId as any)?.workplace,
     },
     {
       title: 'Tình trạng',
@@ -72,7 +84,7 @@ const MeetingReport: React.FC = () => {
       title: 'Thời điểm',
       dataIndex: 'time',
       render: (dom, entity) => (
-        <Space>{dayjs(entity.checkInTime).format('DD/MM/YYYY HH:mm')}</Space>
+        <Space>{entity.checkInTime && dayjs(entity.checkInTime).format('DD/MM/YYYY HH:mm')}</Space>
       ),
       sorter: true,
     },
@@ -114,9 +126,19 @@ const MeetingReport: React.FC = () => {
         value: (entity: AttendanceType) => (entity.guestId as any)?.fullName,
       },
       {
-        column: 'Email',
+        column: 'Số ĐT',
         type: String,
-        value: (entity: AttendanceType) => (entity.guestId as any)?.email,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.phoneNumber,
+      },
+      {
+        column: 'Chức vụ',
+        type: String,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.office,
+      },
+      {
+        column: 'Đơn vị',
+        type: String,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.workplace,
       },
       {
         column: 'Tình trạng',
