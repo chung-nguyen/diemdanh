@@ -6,3 +6,23 @@ body {
 a {
   color: #00B7FF;
 }
+
+.title {
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px #00000080;
+}
+
+.title h3 {
+  font-size: 2rem;
+}
+
+.title h1 {
+  font-size: 4rem;
+  color: #f4fc47;
+}
+
+.title h2 {
+  font-size: 3rem;
+  color: #f4fc47;
+}

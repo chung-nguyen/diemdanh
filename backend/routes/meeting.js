@@ -136,7 +136,7 @@ async function analyzeMeetingSheet(filePath) {
 
   let meetingName = '';
   let headerRowScanned = false;
-  worksheet.eachRow(function (row, rowNumber) {    
+  worksheet.eachRow(function (row, rowNumber) {
     if (!headerRowScanned) {
       row.values.forEach((value, index) => {
         if (!value) {
@@ -206,9 +206,10 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
     return;
   }
 
-  if (idNumber.length < 12) {
-    idNumber = idNumber.padStart(12, '0');
-  }
+  // DO NOT automate this anymore
+  // if (idNumber.length < 12) {
+  //   idNumber = idNumber.padStart(12, '0');
+  // }
 
   let guest = await Guest.findOne({ idNumber });
   if (guest) {
@@ -244,7 +245,7 @@ async function generateExcelInviteSheet(meeting, attendances) {
 
   const title = worksheet.addRow([meeting.name]);
   title.height = 40;
-  title.getCell(1).style = { font: { bold: true, size: 16 } };  
+  title.getCell(1).style = { font: { bold: true, size: 16 } };
 
   const header = worksheet.addRow(['STT', 'Số CCCD', 'Họ và tên', 'Chức vụ', 'Đơn vị', 'Số ĐT', 'Mã QR', 'Hình ảnh']);
   for (let i = 1; i <= 8; ++i) {

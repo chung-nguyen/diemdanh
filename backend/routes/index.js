@@ -1,6 +1,7 @@
 var express = require('express');
 var jwt = require('jsonwebtoken');
 var moment = require('moment');
+var logger = require('../logger');
 
 const { verifyAuthorization } = require('../utils/auth-utils');
 const { Attendance, Admin } = require('../models');
@@ -94,13 +95,42 @@ router.get('/dd/confirm/:code', async function (req, res, next) {
 
 router.get('/dd/:code', async function (req, res, next) {
   const { code } = req.params;
+  const cookies = req.cookies || {};
 
   if (code === 'X') {
     res.render('attendance', { error: 'Đã login vào hệ thống' });
     return;
   }
 
-  const cookies = req.cookies || {};
+  try {
+    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    const mid = Math.floor(tokenSalt.length / 2);
+    await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+
+    try {
+      const attendanceId = Buffer.from(code, 'base64').toString('ascii');
+
+      const attendance = await Attendance.findById(attendanceId).populate('guestId meetingId');
+      if (attendance) {
+        const guest = attendance.guestId;
+        const meeting = attendance.meetingId;
+
+        if (attendance.status !== AttendanceStatus.CHECKED_IN) {
+          attendance.status = AttendanceStatus.CHECKED_IN;
+          attendance.checkInTime = new Date();
+          await attendance.save();
+          logger.info(`[check-in] ${guest.idNumber} attended at ${meeting._id} at time ${attendance.checkInTime.toString()}`);
+        } else {
+          logger.warn(`[check-in] ${guest.idNumber} redo at ${meeting._id} at time ${attendance.checkInTime.toString()}`);
+        }
+      }
+    } catch (ex) {
+      console.error(ex);
+    }
+  } catch (ex) {
+    console.error(ex);
+  }
+
   try {
     const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
     const mid = Math.floor(tokenSalt.length / 2);
@@ -147,6 +177,10 @@ router.get('/dd/:code', async function (req, res, next) {
     console.error(ex);
     res.render('login', { code });
   }
+});
+
+router.get('/fc', async function (req, res, next) {
+  res.render('capture', {});
 });
 
 module.exports = router;
