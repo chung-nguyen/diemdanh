@@ -13,35 +13,11 @@
         {{else}}
           <!-- <h2 class='card-title text-2xl font-bold mb-6'>Thông tin khách mời</h2>-->
           <img src='{{guestImageURL}}' class='object-contain max-w-full max-h-full' style='height: calc(100% - 60px);' />
-
-          <table class='table-auto text-blue-800 text-xl'>
-            <tbody>
-              <tr>
-                <td>Họ và tên</td>
-                <td>{{guestName}}</td>
-              </tr>
-              <!--<tr>
-                <td>Số CCCD</td>
-                <td>{{guestID}}</td>
-              </tr>-->
-              <!--<tr>
-                <td>Chức vụ</td>
-                <td>{{guestOffice}}</td>
-              </tr>-->
-              <tr>
-                <td>Đơn vị</td>
-                <td>{{guestWorkplace}}</td>
-              </tr>
-              <!--<tr>
-                <td>Số điện thoại</td>
-                <td>{{guestPhoneNumber}}</td>
-              </tr>-->
-              <!--<tr>
-                <td>Email</td>
-                <td>{{guestEmail}}</td>
-              </tr>-->
-            </tbody>
-          </table>
+          <div class="text-center">
+            <span class="font-bold text-xl">Đồng chí {{guestName}}</span><br/>
+            <span>{{guestOffice}}</span><br/>
+            <span>{{guestWorkplace}}</span><br/>
+          </div>
 
           {{!-- {{#if isCheckedIn}}
             <p>Khách mời
@@ -59,11 +35,9 @@
     </div>
   </div>
 
-  <div class='title flex justify-center items-center flex-col flex-1' style='z-index: 100;'>
-    <h3 class='text-white'>ĐẢNG BỘ PHƯỜNG BÌNH THẠNH</h3>
-    <div style='height: 4rem;'></div>
-    <h2>ĐẠI HỘI CÁC CƠ QUAN ĐẢNG</h2>
-    <h1>ĐẠI HỘI ĐẢNG VIÊN LẦN THỨ I</h1>
+  <div class='title flex justify-center items-center flex-col flex-1' style='z-index: 100;'>    
+    <h2>ĐẢNG BỘ PHƯỜNG BÌNH THẠNH</h2>
+    <h1>ĐẠI HỘI ĐẠI BIỂU LẦN THỨ I</h1>
     <h2>NHIỆM KỲ 2025 - 2030</h2>
   </div>
 </div>

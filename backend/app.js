@@ -22,7 +22,11 @@ dotenv.config({
   path: '.env',
 });
 
-mongoose.connect(process.env.ENV_MONGO_URI);
+try {
+  mongoose.connect(process.env.ENV_MONGO_URI);
+} catch (ex) {
+  console.error(ex);
+}
 
 var app = express();
 

@@ -44,7 +44,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
       </Form.Item>
       <ProFormAutocomplete
         colProps={{ span: 24 }}
-        name="guestEmail"
+        name="guestIdNumber"
         label="Khách mời"
         queryKey="autocomplete-guests"
         fetchSuggestions={async (query: string) => {

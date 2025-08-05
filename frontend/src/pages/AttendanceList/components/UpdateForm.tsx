@@ -52,20 +52,16 @@ const UpdateForm: React.FC<ViewFormProps> = ({
         <Input readOnly value={meeting?.name} />
       </Form.Item>
       <ProFormText colProps={{ span: 24 }} name="seat" label="Số ghế" />
-      <Form.Item label="Tên khách mời" style={{ width: '100%' }}>
-        <Input readOnly value={(values?.guestId as any)?.fullName} />
-      </Form.Item>
+      <ProFormText name={["guestId", "fullName"]} label="Tên khách mời" />      
       <Space direction="horizontal" size="middle">
         <Form.Item label="Số CCCD" style={{ width: '100%' }}>
           <Input readOnly value={(values?.guestId as any)?.idNumber} />
         </Form.Item>
-        <Form.Item label="Số điện thoại" style={{ width: '100%' }}>
-          <Input readOnly value={(values?.guestId as any)?.phoneNumber} />
-        </Form.Item>
+        <ProFormText name={["guestId", "phoneNumber"]} label="Số điện thoại" />        
       </Space>
-      <Form.Item label="Email" style={{ width: '100%' }}>
-        <Input readOnly value={(values?.guestId as any)?.email} />
-      </Form.Item>
+      <ProFormText name={["guestId", "email"]} label="Email" />
+      <ProFormText name={["guestId", "office"]} label="Chức vụ" />
+      <ProFormText name={["guestId", "workplace"]} label="Đơn vị" />
 
       <Form.Item label="Link điểm danh" style={{ width: '100%' }}>
         <Input readOnly value={checkInLink} />

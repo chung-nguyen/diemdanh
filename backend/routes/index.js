@@ -95,6 +95,7 @@ router.get('/dd/confirm/:code', async function (req, res, next) {
 
 router.get('/dd/:code', async function (req, res, next) {
   const { code } = req.params;
+  const apiKey = req.query.api;
   const cookies = req.cookies || {};
 
   if (code === 'X') {
@@ -103,9 +104,11 @@ router.get('/dd/:code', async function (req, res, next) {
   }
 
   try {
-    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
-    const mid = Math.floor(tokenSalt.length / 2);
-    await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+    // if (apiKey !== process.env.API_KEY) {
+    //   const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    //   const mid = Math.floor(tokenSalt.length / 2);
+    //   await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+    // }
 
     try {
       const attendanceId = Buffer.from(code, 'base64').toString('ascii');
@@ -132,9 +135,11 @@ router.get('/dd/:code', async function (req, res, next) {
   }
 
   try {
-    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
-    const mid = Math.floor(tokenSalt.length / 2);
-    await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+    // if (apiKey !== process.env.API_KEY) {
+    //   const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    //   const mid = Math.floor(tokenSalt.length / 2);
+    //   await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
+    // }
 
     try {
       const attendanceId = Buffer.from(code, 'base64').toString('ascii');
@@ -177,6 +182,23 @@ router.get('/dd/:code', async function (req, res, next) {
     console.error(ex);
     res.render('login', { code });
   }
+});
+
+router.get('/sample', async function (req, res, next) {
+  res.render('attendance', {
+    code: 'XXX',
+    guestImageURL: 'xxx',
+    attendTime: '123',
+    guestName: 'ABC',
+    guestID: '123',
+    guestEmail: '123',
+    meetingName: '123',
+    guestOffice: 'Bí thư Đảng bộ các cơ quan Đảng, Phó Bí thư Thường trực Đảng ủy phường',
+    guestWorkplace: '123',
+    guestPhoneNumber: '123',
+    guestEmail: '123',
+    isCheckedIn: true
+  });
 });
 
 router.get('/fc', async function (req, res, next) {

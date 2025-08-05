@@ -38,7 +38,7 @@ const CopyableQRCode: FC<any> = ({ value, height, ...props }) => {
     <div>
       {/* Render the QR Code SVG invisibly */}
       <div style={{ display: 'none' }}>
-        <QRCode ref={svgRef} value={value} {...props} />
+        {!!value && <QRCode ref={svgRef} value={value} {...props} />}
       </div>
 
       {/* Hidden Canvas (for processing only) */}

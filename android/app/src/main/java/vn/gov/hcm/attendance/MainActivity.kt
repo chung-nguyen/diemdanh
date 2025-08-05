@@ -5,26 +5,28 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.budiyev.android.codescanner.AutoFocusMode
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.CodeScannerView
 import com.budiyev.android.codescanner.DecodeCallback
 import com.budiyev.android.codescanner.ErrorCallback
 import com.budiyev.android.codescanner.ScanMode
-import vn.gov.hcm.attendance.ui.theme.AttendanceCheckTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 
 class MainActivity : ComponentActivity() {
+    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+
     private lateinit var codeScanner: CodeScanner
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +37,7 @@ class MainActivity : ComponentActivity() {
         codeScanner = CodeScanner(this, scannerView)
 
         // Parameters (default values)
-        codeScanner.camera = CodeScanner.CAMERA_BACK // or CAMERA_FRONT or specific camera id
+        codeScanner.camera = CodeScanner.CAMERA_FRONT // or CAMERA_FRONT or specific camera id
         codeScanner.formats = CodeScanner.ALL_FORMATS // list of type BarcodeFormat,
         // ex. listOf(BarcodeFormat.QR_CODE)
         codeScanner.autoFocusMode = AutoFocusMode.SAFE // or CONTINUOUS
@@ -45,8 +47,18 @@ class MainActivity : ComponentActivity() {
 
         // Callbacks
         codeScanner.decodeCallback = DecodeCallback {
-            runOnUiThread {
-                Toast.makeText(this, "Scan result: ${it.text}", Toast.LENGTH_LONG).show()
+            executorService.execute()
+            {
+                val code = it.text.substringAfterLast("/")
+                val response = sendGetRequest("http://localhost:5005/qr/${code}")
+                runOnUiThread {
+                    Toast.makeText(this, code, Toast.LENGTH_LONG).show()
+
+                    lifecycleScope.launch {
+                        delay(3000)
+                        checkCameraPermissionAndStart()
+                    }
+                }
             }
         }
         codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
@@ -88,6 +100,43 @@ class MainActivity : ComponentActivity() {
             codeScanner.startPreview()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    fun sendGetRequest(urlString: String): String {
+        var connection: HttpURLConnection? = null
+        var reader: BufferedReader? = null
+        try {
+            val url = URL(urlString)
+            connection = url.openConnection() as HttpURLConnection?
+            connection!!.setRequestMethod("GET")
+
+            val responseCode = connection.getResponseCode()
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                reader = BufferedReader(InputStreamReader(connection.getInputStream()))
+                val response = StringBuilder()
+                var line: String?
+                while ((reader.readLine().also { line = it }) != null) {
+                    response.append(line)
+                }
+                return response.toString()
+            } else {
+                return "Error: " + responseCode
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return "Exception: " + e.message
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            if (connection != null) {
+                connection.disconnect()
+            }
         }
     }
 }

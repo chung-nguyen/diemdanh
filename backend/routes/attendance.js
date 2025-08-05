@@ -36,15 +36,26 @@ router.delete('/', async function (req, res, next) {
 });
 
 router.post('/', async function (req, res, next) {
-  if (req.body.guestEmail) {
-    const guest = await Guest.findOne({ email: req.body.guestEmail });
-    delete req.body.guestEmail;
+  let guestIdNumber = req.body.guestIdNumber;
+  let guestId;
 
-    req.body.guestId = guest._id;
+  if (guestIdNumber) {
+    console.log(guestIdNumber)
+    const guest = await Guest.findOne({ idNumber: guestIdNumber });
+    guestId = guest._id;
   }
 
-  const doc = new Attendance(Object(req.body));
-  doc.status = doc.status || AttendanceStatus.UNKNOWN;
+  if (!guestId) {
+    throw new Error('Guest not found!');
+  }
+
+  const doc = new Attendance({
+    meetingId: req.body.meetingId,
+    guestId,
+    seat: 0,
+    status: AttendanceStatus.UNKNOWN,
+    checkInTime: null,
+  });
   await doc.save();
   res.status(200).json({ data: doc.toObject(), success: true });
 });
@@ -52,11 +63,21 @@ router.post('/', async function (req, res, next) {
 // Update an existing Category
 router.put('/:id', async function (req, res, next) {
   const { id } = req.params;
+  const updateValues = Object.fromEntries(Object.entries(req.body).filter(([_, value]) => value != null && value != undefined));
+
+  let guestUpdate;
+  if (updateValues.guestId) {
+    guestUpdate = updateValues.guestId;
+    delete updateValues.guestId;
+  }
   const doc = await Attendance.findOneAndUpdate(
     { _id: id },
-    Object.fromEntries(Object.entries(req.body).filter(([_, value]) => value != null && value != undefined)),
+    updateValues,
     { new: true }
   );
+  if (Object.keys(guestUpdate).length > 0) {
+    await Guest.findOneAndUpdate({ _id: doc.guestId }, guestUpdate)
+  }
   res.status(200).json({ data: doc.toObject(), success: true });
 });
 
