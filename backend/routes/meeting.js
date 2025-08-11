@@ -7,6 +7,7 @@ var QRCode = require('qrcode');
 const { Meeting, Attendance, Guest } = require('../models');
 const { DEFAULT_SETTINGS } = require('../config');
 const { AttendanceStatus } = require('../models/attendance');
+const { getQRCodeLink } = require('./common/qrcodes');
 
 var router = express.Router();
 
@@ -293,7 +294,7 @@ async function generateExcelInviteSheet(meeting, attendances) {
 
   const qrImageIDs = await Promise.all(
     attendances.map(async (attendance, index) => {
-      const checkInURL = DEFAULT_SETTINGS.checkInURL + '/' + Buffer.from(String(attendance._id)).toString('base64');
+      const checkInURL = getQRCodeLink(attendance);
 
       const qrCode = await generateQRCodeBase64(checkInURL);
       if (qrCode) {

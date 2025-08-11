@@ -195,7 +195,7 @@ const AttendanceList: React.FC = () => {
       dataIndex: 'guestId',
       sorter: false,
       render: (dom, entity) => {
-        const link = meeting && entity?.guestId && buildCheckInURL(checkInURL!, entity._id);
+        const link = meeting && entity?.guestId && buildCheckInURL(checkInURL!, entity);
         return (
           <CopyableQRCode
             size={256}

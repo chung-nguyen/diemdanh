@@ -33,7 +33,7 @@ const UpdateForm: React.FC<ViewFormProps> = ({
   const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
 
   const checkInLink = useMemo(
-    () => meeting && values?.guestId && buildCheckInURL(checkInURL!, values!._id!),
+    () => meeting && values?.guestId && buildCheckInURL(checkInURL!, values! as AttendanceType),
     [meeting, values, checkInURL],
   );
 
