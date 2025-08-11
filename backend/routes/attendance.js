@@ -25,7 +25,7 @@ router.get('/', async function (req, res, next) {
 
 router.get('/:id', async function (req, res, next) {
   const { id } = req.params;
-  const doc = await Attendance.findById(id);
+  const doc = await Attendance.findById(id).populate('guestId');
   res.status(200).json({ data: doc, success: true });
 });
 
@@ -40,7 +40,6 @@ router.post('/', async function (req, res, next) {
   let guestId;
 
   if (guestIdNumber) {
-    console.log(guestIdNumber)
     const guest = await Guest.findOne({ idNumber: guestIdNumber });
     guestId = guest._id;
   }

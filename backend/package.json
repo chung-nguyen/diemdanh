@@ -23,6 +23,7 @@
     "moment": "^2.30.1",
     "mongoose": "^8.8.2",
     "morgan": "~1.9.1",
+    "pdfkit": "^0.17.1",
     "qrcode": "^1.5.4",
     "winston": "^3.17.0",
     "write-excel-file": "^2.0.10"

@@ -11,6 +11,6 @@ export const getPhotoURL = (filePath: string) => {
 
 export const buildCheckInURL = (baseURL: string, attendance: AttendanceType) => {
   const blob = encodeURIComponent(btoa(attendance._id));
-  const blob0 = encodeURIComponent(btoa(attendance.guestId));
+  const blob0 = encodeURIComponent(btoa((attendance.guestId as any).idNumber));
   return baseURL + '/' + blob0 + '/' + blob;
 }

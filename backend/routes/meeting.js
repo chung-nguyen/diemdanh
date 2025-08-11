@@ -2,6 +2,7 @@ var path = require('path');
 var fs = require('fs');
 var express = require('express');
 var Excel = require('exceljs');
+var PDFDocument = require("pdfkit");
 var QRCode = require('qrcode');
 
 const { Meeting, Attendance, Guest } = require('../models');
@@ -41,6 +42,18 @@ router.get('/generate/:id', async function (req, res, next) {
   ]);
 
   await generateExcelInviteSheet(meeting, attendances);
+
+  res.status(200).json({ success: true });
+});
+
+router.get('/print/:id', async function (req, res, next) {
+  const { id } = req.params;
+  const [meeting, attendances] = await Promise.all([
+    Meeting.findById(id).lean(),
+    Attendance.find({ meetingId: id }).sort({ seat: 1 }).populate('guestId').lean(),
+  ]);
+
+  await printQRCodesSheet(meeting, attendances);
 
   res.status(200).json({ success: true });
 });
@@ -231,6 +244,76 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
   }
 
   return guest._id;
+}
+
+async function printQRCodesSheet(meeting, attendances) {
+  // === SETTINGS ===
+  const cmToPt = cm => (cm / 2.54) * 72; // convert cm to points
+
+  const frameWidth = cmToPt(5);
+  const frameHeight = cmToPt(6.5);
+  const qrSize = cmToPt(4.5);
+  const spacing = cmToPt(1);
+
+  const doc = new PDFDocument({
+    size: "A0",
+    margin: 0
+  });
+
+  doc.pipe(fs.createWriteStream(path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.pdf')));
+  doc.registerFont('Roboto-Bold', path.join(__dirname, '../data/Roboto-Bold.ttf'));
+
+  let x = spacing;
+  let y = spacing;
+  const pageWidth = doc.page.width;
+  const pageHeight = doc.page.height;
+
+  for (let i = 0; i < attendances.length; i++) {
+    const attendance = attendances[i];
+    const guest = attendance.guestId;
+    const checkInURL = getQRCodeLink(attendance);
+
+    // Generate QR code
+    const qrData = await QRCode.toBuffer(checkInURL, {
+      width: qrSize,
+      margin: 0
+    });
+
+    // Draw frame border
+    doc.rect(x, y, frameWidth, frameHeight).stroke();
+
+    // Draw QR code inside frame
+    doc.image(qrData, x + (frameWidth - qrSize) / 2, y + cmToPt(0.25), {
+      width: qrSize,
+      height: qrSize
+    });
+
+    // Draw text (name + id)
+    doc.font('Roboto-Bold').fontSize(12).text(`${guest.fullName}`, x, y + qrSize + cmToPt(0.625), {
+      width: frameWidth,
+      align: "center"
+    });
+    doc.font('Roboto-Bold').fontSize(12).text(`${guest.idNumber}`, x, y + qrSize + cmToPt(1.125), {
+      width: frameWidth,
+      align: "center"
+    });
+
+    // Move position for next frame
+    x += frameWidth + spacing;
+    if (x + frameWidth + spacing > pageWidth) {
+      x = spacing;
+      y += frameHeight + spacing;
+    }
+
+    // If next frame won't fit vertically, start a new page
+    if (y + frameHeight + spacing > pageHeight && i < attendances.length - 1) {
+      doc.addPage();
+      x = spacing;
+      y = spacing;
+    }
+  }
+
+  doc.end();
 }
 
 async function generateExcelInviteSheet(meeting, attendances) {

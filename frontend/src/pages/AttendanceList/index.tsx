@@ -1,4 +1,4 @@
-import { BookOutlined, PlusOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
@@ -14,7 +14,7 @@ import {
   updateAttendance,
   type AttendanceType,
 } from '@/services/ant-design-pro/attendance';
-import { generateInviteSheet, getCheckInURL, getMeeting } from '@/services/ant-design-pro/meeting';
+import { generateInviteSheet, getCheckInURL, getMeeting, printQRSheet } from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
@@ -98,6 +98,21 @@ const handleGenerateInviteSHeet = async (id: string) => {
 
   try {
     await generateInviteSheet(id);
+    hide();
+    message.success('Đã xử lý thành công');
+    return true;
+  } catch (error: any) {
+    hide();
+    message.error('Vui lòng thử lại!');
+    return false;
+  }
+};
+
+const handlePrintQRSheet = async (id: string) => {
+  const hide = message.loading('Đang xử lý');
+
+  try {
+    await printQRSheet(id);
     hide();
     message.success('Đã xử lý thành công');
     return true;
@@ -288,6 +303,10 @@ const AttendanceList: React.FC = () => {
 
           <Button type="default" key="default" onClick={() => handleGenerateInviteSHeet(meetingId)}>
             <SaveOutlined /> Xuất file
+          </Button>,
+
+          <Button type="default" key="default" onClick={() => handlePrintQRSheet(meetingId)}>
+            <PrinterOutlined /> In QR
           </Button>,
 
           <Button

@@ -161,7 +161,7 @@ export default defineConfig({
    * @description 使用 mako 极速研发
    * @doc https://umijs.org/docs/api/config#mako
    */
-  // mako: {},
+  mako: {},
   esbuildMinifyIIFE: true,
   requestRecord: {},
   reactQuery: {},
