@@ -1,29 +1,35 @@
 import { useIntl } from '@umijs/max';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { InboxOutlined } from '@ant-design/icons';
-import { message, Modal } from 'antd';
+import { message, Modal, Space } from 'antd';
 import Dragger from 'antd/es/upload/Dragger';
 import { UploadProps } from 'antd/lib';
 import { getAPIURL } from '@/services/utils/common-utils';
 import { getAccessToken } from '@/services/ant-design-pro/login';
+import { Form, Input } from 'antd';
 
-export type ImportFormProps = {
+export type SeatFormProps = {
   onCancel: () => void;
   visible: boolean;
   meetingId: string;
 };
 
-const ImportForm: React.FC<ImportFormProps> = ({ meetingId, onCancel, visible }) => {
+const SeatForm: React.FC<SeatFormProps> = ({ meetingId, onCancel, visible }) => {
   const intl = useIntl();
   const accessToken = getAccessToken();
+
+  const [range, setRange] = useState('C10:Q24');
 
   const props: UploadProps = {
     name: 'file',
     multiple: false,
-    action: getAPIURL(`meeting/import-addendum/${meetingId}`),
+    action: getAPIURL(`meeting/import-seatmap/${meetingId}`),
     headers: {
       Authorization: `Bearer ${accessToken}`,
+    },
+    data: {
+      range: range
     },
     onChange(info) {
       const { status } = info.file;
@@ -43,15 +49,20 @@ const ImportForm: React.FC<ImportFormProps> = ({ meetingId, onCancel, visible })
 
   return (
     <Modal open={visible} onOk={onCancel} onCancel={onCancel}>
-      <Dragger {...props}>
-        <p className="ant-upload-drag-icon">
-          <InboxOutlined />
-        </p>
-        <p className="ant-upload-text">Click hoặc kéo file vào đây để nhập</p>
-        <p className="ant-upload-hint">Bổ sung khách mời bằng cách nhập file Excel.</p>
-      </Dragger>      
+      <Space size="large" direction="vertical" style={{width: '100%'}}>
+        <Dragger {...props}>
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Click hoặc kéo file vào đây để nhập</p>
+          <p className="ant-upload-hint">Cập nhật sơ đồ phòng họp bằng cách nhập file Excel.</p>
+        </Dragger>
+        <Form.Item label="Chọn ô Excel" style={{ width: '100%' }}>
+          <Input placeholder='Ví dụ: C10:Q24' value={range} onChange={(e) => setRange(e.target.value)} />
+        </Form.Item>
+      </Space>
     </Modal>
   );
 };
 
-export default ImportForm;
+export default SeatForm;

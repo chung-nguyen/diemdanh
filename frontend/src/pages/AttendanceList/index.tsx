@@ -1,4 +1,4 @@
-import { BookOutlined, DownOutlined, FileExcelOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, DownOutlined, FileExcelOutlined, HomeOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
@@ -22,6 +22,7 @@ import UpdateForm from './components/UpdateForm';
 import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 import ImportForm from './components/ImportForm';
+import SeatForm from './components/SeatForm';
 
 /**
  * Add node
@@ -143,6 +144,7 @@ const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [importModalVisible, handleImportModalVisible] = useState<boolean>(false);
+  const [seatModalVisible, handleSeatModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<AttendanceType>();
@@ -335,6 +337,11 @@ const AttendanceList: React.FC = () => {
           <Dropdown menu={{
             items: [
               {
+                label: 'Cập nhật sơ đồ',
+                key: 'updateSeat',
+                icon: <HomeOutlined />,
+              },
+              {
                 label: 'Bổ sung từ Excel',
                 key: 'importExcel',
                 icon: <FileExcelOutlined />,
@@ -353,6 +360,10 @@ const AttendanceList: React.FC = () => {
 
                 case 'importExcel':
                   handleImportModalVisible(true);
+                  break;
+
+                case 'updateSeat':
+                  handleSeatModalVisible(true);
                   break;
               }
             }
@@ -456,6 +467,14 @@ const AttendanceList: React.FC = () => {
           handleImportModalVisible(false);
         }}
         visible={importModalVisible}
+      />
+
+      <SeatForm
+        meetingId={meetingId}
+        onCancel={() => {
+          handleSeatModalVisible(false);
+        }}
+        visible={seatModalVisible}
       />
     </PageContainer>
   );

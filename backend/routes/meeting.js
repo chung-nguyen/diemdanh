@@ -159,6 +159,39 @@ router.post('/import-addendum/:meeting', async function (req, res) {
   });
 });
 
+router.post('/import-seatmap/:meeting', async function (req, res) {
+  const meetingId = req.params.meeting;
+  const range = req.body.range;
+
+  let sampleFile;
+  let uploadPath;
+
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  sampleFile = req.files.file;
+  uploadPath = DEFAULT_SETTINGS.uploadPath;
+
+  const destFilePath = path.join(uploadPath, sampleFile.name);
+  sampleFile.mv(destFilePath, async function (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ success: false });
+      return;
+    }
+
+    // const meeting = await updateMeetingSheet(meetingId, destFilePath);
+    if (!meeting) {
+      console.error('Could not save meeting');
+      res.status(500).json({ success: false });
+      return;
+    }
+
+    res.status(200).json({ success: true, meeting });
+  });
+});
+
 async function updateMeetingSheet(meetingId, filePath) {
   const workbook = new Excel.Workbook();
   await workbook.xlsx.readFile(filePath);
