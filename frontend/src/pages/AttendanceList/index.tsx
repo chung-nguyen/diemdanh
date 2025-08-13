@@ -1,8 +1,8 @@
-import { BookOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, DownOutlined, FileExcelOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
-import { Avatar, Button, message, Popconfirm, Space } from 'antd';
+import { Avatar, Button, Dropdown, message, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
@@ -21,6 +21,7 @@ import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
 import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
+import ImportForm from './components/ImportForm';
 
 /**
  * Add node
@@ -108,6 +109,21 @@ const handleGenerateInviteSHeet = async (id: string) => {
   }
 };
 
+const handleImportExcel = async (id: string) => {
+  const hide = message.loading('Đang xử lý');
+
+  try {
+    await printQRSheet(id);
+    hide();
+    message.success('Đã xử lý thành công');
+    return true;
+  } catch (error: any) {
+    hide();
+    message.error('Vui lòng thử lại!');
+    return false;
+  }
+};
+
 const handlePrintQRSheet = async (id: string) => {
   const hide = message.loading('Đang xử lý');
 
@@ -126,6 +142,7 @@ const handlePrintQRSheet = async (id: string) => {
 const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [importModalVisible, handleImportModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<AttendanceType>();
@@ -237,7 +254,7 @@ const AttendanceList: React.FC = () => {
     {
       title: 'Thời điểm',
       dataIndex: 'checkInTime',
-      render: (dom, entity) => ( 
+      render: (dom, entity) => (
         <Space>{entity.checkInTime && dayjs(entity.checkInTime).format('DD MMM YYYY HH:mm')}</Space>
       ),
       sorter: true,
@@ -305,10 +322,6 @@ const AttendanceList: React.FC = () => {
             <SaveOutlined /> Xuất file
           </Button>,
 
-          <Button type="default" key="default" onClick={() => handlePrintQRSheet(meetingId)}>
-            <PrinterOutlined /> In QR
-          </Button>,
-
           <Button
             type="default"
             key="default"
@@ -318,6 +331,39 @@ const AttendanceList: React.FC = () => {
           >
             <BookOutlined /> Báo cáo
           </Button>,
+
+          <Dropdown menu={{
+            items: [
+              {
+                label: 'Bổ sung từ Excel',
+                key: 'importExcel',
+                icon: <FileExcelOutlined />,
+              },
+              {
+                label: 'In QR',
+                key: 'printQR',
+                icon: <PrinterOutlined />,
+              }
+            ],
+            onClick: (menuInfo) => {
+              switch (menuInfo.key) {
+                case 'printQR':
+                  handlePrintQRSheet(meetingId);
+                  break;
+
+                case 'importExcel':
+                  handleImportModalVisible(true);
+                  break;
+              }
+            }
+          }}>
+            <Button>
+              <Space>
+                Chức năng
+                <DownOutlined />
+              </Space>
+            </Button>
+          </Dropdown>
         ]}
         request={attendances(meetingId)}
         columns={columns}
@@ -402,6 +448,14 @@ const AttendanceList: React.FC = () => {
         }}
         viewModalVisible={updateModalVisible}
         values={currentRow || {}}
+      />
+
+      <ImportForm
+        meetingId={meetingId}
+        onCancel={() => {
+          handleImportModalVisible(false);
+        }}
+        visible={importModalVisible}
       />
     </PageContainer>
   );

@@ -127,6 +127,119 @@ router.post('/import', async function (req, res) {
   });
 });
 
+router.post('/import-addendum/:meeting', async function (req, res) {
+  const meetingId = req.params.meeting;
+
+  let sampleFile;
+  let uploadPath;
+
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  sampleFile = req.files.file;
+  uploadPath = DEFAULT_SETTINGS.uploadPath;
+
+  const destFilePath = path.join(uploadPath, sampleFile.name);
+  sampleFile.mv(destFilePath, async function (err) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ success: false });
+      return;
+    }
+
+    const meeting = await updateMeetingSheet(meetingId, destFilePath);
+    if (!meeting) {
+      console.error('Could not save meeting');
+      res.status(500).json({ success: false });
+      return;
+    }
+
+    res.status(200).json({ success: true, meeting });
+  });
+});
+
+async function updateMeetingSheet(meetingId, filePath) {
+  const workbook = new Excel.Workbook();
+  await workbook.xlsx.readFile(filePath);
+
+  if (!workbook) {
+    throw new Error('Failed to read worksheet');
+  }
+
+  const meeting = await Meeting.findById(meetingId);
+  if (!meeting) {
+    throw new Error('Meeting not found');
+  }
+
+  const worksheet = workbook.worksheets[0];
+
+  const headerColumnIndex = {
+    idNumber: 0,
+    fullName: 0,
+    office: 0,
+    workplace: 0,
+    phoneNumber: 0
+  };
+
+  let promises = [];
+
+  let meetingName = '';
+  let headerRowScanned = false;
+  worksheet.eachRow(function (row, rowNumber) {
+    if (!headerRowScanned) {
+      row.values.forEach((value, index) => {
+        if (!value) {
+          return;
+        }
+
+        if (!meetingName) {
+          meetingName = value;
+        }
+
+        if (value.toLowerCase().includes('cccd')) {
+          headerRowScanned = true;
+          headerColumnIndex.idNumber = index;
+        } else if (value.toLowerCase().includes('tên')) {
+          headerRowScanned = true;
+          headerColumnIndex.fullName = index;
+        } else if (value.toLowerCase().includes('chức')) {
+          headerRowScanned = true;
+          headerColumnIndex.office = index;
+        } else if (value.toLowerCase().includes('đơn vị')) {
+          headerRowScanned = true;
+          headerColumnIndex.workplace = index;
+        } else if (value.toLowerCase().includes('đt') || value.toLowerCase().includes('điện thoại')) {
+          headerRowScanned = true;
+          headerColumnIndex.phoneNumber = index;
+        }
+      });
+    } else {
+      promises.push(addMissingGuestFromExcel(headerColumnIndex, row.values));
+    }
+  });
+
+  const guestIds = await Promise.all(promises);    
+
+  await Promise.all(
+    guestIds.map(async (guestId, index) => {
+      let attendance = await Attendance.findOne({ meetingId, guestId });
+      if (!attendance) {
+        const attendance = new Attendance({
+          meetingId,
+          guestId,
+          seat: index + 1,
+          status: AttendanceStatus.UNKNOWN,
+          checkInTime: null,
+        });
+        await attendance.save();
+      }
+    })
+  );
+
+  return meeting.toObject();
+}
+
 async function analyzeMeetingSheet(filePath) {
   const workbook = new Excel.Workbook();
   await workbook.xlsx.readFile(filePath);
@@ -256,7 +369,7 @@ async function printQRCodesSheet(meeting, attendances) {
   const spacing = cmToPt(1);
 
   const doc = new PDFDocument({
-    size: "A0",
+    size: "A4",
     margin: 0
   });
 
@@ -289,7 +402,7 @@ async function printQRCodesSheet(meeting, attendances) {
     });
 
     // Draw text (name + id)
-    doc.font('Roboto-Bold').fontSize(12).text(`${guest.fullName}`, x, y + qrSize + cmToPt(0.625), {
+    doc.font('Roboto-Bold').fontSize(10).text(`${guest.fullName}`, x, y + qrSize + cmToPt(0.625), {
       width: frameWidth,
       align: "center"
     });
