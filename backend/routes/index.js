@@ -187,8 +187,10 @@ router.get('/dd/:code', async function (req, res, next) {
 router.get('/seatmap/:meeting', async function (req, res, next) {
   const meetingId = req.params.meeting;
   
-  const meeting = await Meeting.findById(meetingId).populate('seatmapId');
+  const meeting = await Meeting.findById(meetingId).populate('seatmapId').lean();
   const seatmap = meeting.seatmapId;
+
+  const attendances = await Attendance.find({ meetingId }).populate('guestId').lean();
 
   const sheet = [];
   const { startCol, startRow, endCol, endRow, seats } = seatmap;
@@ -196,12 +198,17 @@ router.get('/seatmap/:meeting', async function (req, res, next) {
     const row = [];
     for (let c = startCol; c <= endCol; ++c) {
       const value = seats[`${r}:${c}`];
-      row.push(value ? { value, attended: true } : null); 
+      let attended = false;
+
+      const attendance = attendances.find((it) => it.guestId.idNumber == value);
+      if (attendance && attendance.status === AttendanceStatus.CHECKED_IN) {
+        attended = true;
+      }
+      row.push(value ? { value, attended } : null); 
     }
     sheet.push(row);
   }
 
-  console.log(sheet);
   res.render('seatmap', { sheet });
 });
 
