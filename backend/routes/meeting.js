@@ -8,6 +8,7 @@ var QRCode = require('qrcode');
 const { Meeting, Attendance, Guest } = require('../models');
 const { DEFAULT_SETTINGS } = require('../config');
 const { AttendanceStatus } = require('../models/attendance');
+const { SeatMap } = require('../models/seatmap');
 const { getQRCodeLink } = require('./common/qrcodes');
 
 var router = express.Router();
@@ -181,7 +182,7 @@ router.post('/import-seatmap/:meeting', async function (req, res) {
       return;
     }
 
-    // const meeting = await updateMeetingSheet(meetingId, destFilePath);
+    const meeting = await updateSeatMap(meetingId, destFilePath, range);
     if (!meeting) {
       console.error('Could not save meeting');
       res.status(500).json({ success: false });
@@ -191,6 +192,52 @@ router.post('/import-seatmap/:meeting', async function (req, res) {
     res.status(200).json({ success: true, meeting });
   });
 });
+
+async function updateSeatMap(meetingId, filePath, range) {
+  const workbook = new Excel.Workbook();
+  await workbook.xlsx.readFile(filePath);  
+
+  if (!workbook) {
+    throw new Error('Failed to read worksheet');
+  }
+
+  const meeting = await Meeting.findById(meetingId);
+  if (!meeting) {
+    throw new Error('Meeting not found');
+  }
+
+  const [start, end] = range.split(':');
+  const [startCol, startRow] = parseCell(start);
+  const [endCol, endRow] = parseCell(end);
+  
+  const seats = {};
+  const worksheet = workbook.worksheets[0];
+  for (let row = startRow; row <= endRow; ++row) {
+    const sheetRow = worksheet.getRow(row);
+    for (let col = startCol; col < endCol; ++col) {
+      const cell = sheetRow.getCell(col);
+      if (cell) {
+        seats[`${row}:${col}`] = cell.value;
+      }
+    }
+  }
+
+  const seatMap = new SeatMap({
+    meetingId,
+    startRow,
+    startCol,
+    endRow,
+    endCol,
+    seats
+  });
+
+  const seatData = await seatMap.save();
+
+  meeting.seatmapId = seatData._id;
+  await meeting.save();
+
+  return meeting.toObject();
+}
 
 async function updateMeetingSheet(meetingId, filePath) {
   const workbook = new Excel.Workbook();
@@ -580,5 +627,21 @@ const generateQRCodeBase64 = async (text) => {
   }
   return undefined;
 };
+
+function parseCell(cell) {
+  const match = cell.match(/^([A-Z]+)(\d+)$/i);
+  if (!match) throw new Error('Invalid cell reference');
+
+  const colLetters = match[1].toUpperCase();
+  const rowNumber = parseInt(match[2], 10);
+
+  // Convert letters to column number (A=1, B=2, ..., Z=26, AA=27, etc.)
+  let colNumber = 0;
+  for (let i = 0; i < colLetters.length; i++) {
+    colNumber = colNumber * 26 + (colLetters.charCodeAt(i) - 64);
+  }
+
+  return [colNumber, rowNumber];
+}
 
 module.exports = router;

@@ -4,5 +4,9 @@ exports.Meeting = mongoose.model('Meeting', {
   name: String,
   time: Date,
   duration: Number,
-  description: String
+  description: String,
+  seatmapId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'SeatMap'
+  }
 });
