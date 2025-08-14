@@ -1,8 +1,10 @@
 package vn.gov.hcm.attendance
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,10 +30,24 @@ class MainActivity : ComponentActivity() {
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
 
     private lateinit var codeScanner: CodeScanner
+    private lateinit var protocol: String
+    private lateinit var ipAddress: String
+    private lateinit var httpPort: String
+    private lateinit var httpPath: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        loadSettings()
         setContentView(R.layout.main_activity)
+
+        val btnSettings = findViewById<ImageButton>(R.id.button_settings)
+
+        btnSettings.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
+
         val scannerView = findViewById<CodeScannerView>(R.id.scanner_view)
 
         codeScanner = CodeScanner(this, scannerView)
@@ -50,7 +66,8 @@ class MainActivity : ComponentActivity() {
             executorService.execute()
             {
                 val code = it.text.substringAfterLast("/")
-                val response = sendGetRequest("http://localhost:5005/qr/${code}")
+                val cleanedPath = httpPath.removePrefix("/").removeSuffix("/")
+                val response = sendGetRequest("${protocol}://${ipAddress}:${httpPort}/${cleanedPath}/${code}")
                 runOnUiThread {
                     Toast.makeText(this, code, Toast.LENGTH_LONG).show()
 
@@ -76,6 +93,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadSettings()
         codeScanner.startPreview()
     }
 
@@ -138,5 +156,16 @@ class MainActivity : ComponentActivity() {
                 connection.disconnect()
             }
         }
+    }
+
+    private fun loadSettings() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        protocol = prefs.getString("protocol", "http") ?: "http"
+        ipAddress = prefs.getString("ip_address", "127.0.0.1") ?: "127.0.0.1"
+        httpPort = prefs.getString("http_port", "80") ?: ""
+        httpPath = prefs.getString("http_path", "/dd") ?: "/dd"
+
+        val cleanedPath = httpPath.removePrefix("/").removeSuffix("/")
+        Toast.makeText(this, "${protocol}://${ipAddress}:${httpPort}/${cleanedPath}/CODE",Toast.LENGTH_LONG).show()
     }
 }

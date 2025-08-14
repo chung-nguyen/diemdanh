@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8pt"
+        android:orientation="vertical">
+
+        <!-- Protocol -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="@string/protocol"
+            android:textSize="16sp" />
+
+        <Spinner
+            android:id="@+id/spinner_protocol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/protocols"
+            />
+
+        <!-- IP Address -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:text="IP Address" />
+
+        <EditText
+            android:id="@+id/input_ip_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="e.g. 192.168.1.100"
+            android:inputType="text" />
+
+        <!-- HTTP Port -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:text="HTTP Port" />
+
+        <EditText
+            android:id="@+id/input_http_port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="e.g. 8080"
+            android:inputType="number" />
+
+        <!-- HTTP Path -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:text="HTTP Path" />
+
+        <EditText
+            android:id="@+id/input_http_path"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="e.g. /api/data"
+            android:inputType="text" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="8pt"
+        android:text="@string/save" />
+</FrameLayout>

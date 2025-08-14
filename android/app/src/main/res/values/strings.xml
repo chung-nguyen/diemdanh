@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">AttendanceCheck</string>
+    <string name="app_name">Điểm danh Đại hội</string>
+    <string name="save">Lưu lại</string>
+    <string name="protocol">Protocol</string>
+    <string-array name="protocols">
+        <item>http</item>
+        <item>https</item>
+    </string-array>
 </resources>
