@@ -26,3 +26,25 @@ a {
   font-size: 3rem;
   color: #f4fc47;
 }
+
+.seatmap td {
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  border: solid 1pt #00000080;
+  color: #ffbf00; 
+  font-weight: bold;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.seatmap td.empty {
+  border: none;
+  width: 6rem;
+  height: 3rem;
+}
+
+.seatmap td.attended {
+  background-color: #FA003F;
+  color: #FEED29;
+}

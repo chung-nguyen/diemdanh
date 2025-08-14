@@ -4,7 +4,7 @@ var moment = require('moment');
 var logger = require('../logger');
 
 const { verifyAuthorization } = require('../utils/auth-utils');
-const { Attendance, Admin } = require('../models');
+const { Attendance, Admin, Meeting } = require('../models');
 const { AttendanceStatus } = require('../models/attendance');
 
 var router = express.Router();
@@ -182,6 +182,27 @@ router.get('/dd/:code', async function (req, res, next) {
     console.error(ex);
     res.render('login', { code });
   }
+});
+
+router.get('/seatmap/:meeting', async function (req, res, next) {
+  const meetingId = req.params.meeting;
+  
+  const meeting = await Meeting.findById(meetingId).populate('seatmapId');
+  const seatmap = meeting.seatmapId;
+
+  const sheet = [];
+  const { startCol, startRow, endCol, endRow, seats } = seatmap;
+  for (let r = startRow; r <= endRow; ++r) {
+    const row = [];
+    for (let c = startCol; c <= endCol; ++c) {
+      const value = seats[`${r}:${c}`];
+      row.push(value ? { value, attended: true } : null); 
+    }
+    sheet.push(row);
+  }
+
+  console.log(sheet);
+  res.render('seatmap', { sheet });
 });
 
 router.get('/sample', async function (req, res, next) {

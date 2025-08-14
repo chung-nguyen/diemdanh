@@ -1,0 +1,31 @@
+<div class='container mx-auto flex items-center justify-start h-full'>
+  <div class='absolute top-0 left-0 w-screen h-screen'>
+    <figure class='w-full h-full'>
+      <img src='/images/binhquoi/seatbg.jpg' alt='Điểm danh' class='object-contain w-full h-full' />
+    </figure>
+  </div>
+
+  <div class='absolute top-0 left-0 w-screen h-screen flex'>    
+    <div class="flex w-full h-full items-center justify-center">
+      <table class="seatmap">
+        <tbody>
+          {{#each sheet}}
+          <tr>
+            {{#each this}}
+              {{#if this}}
+                {{#if this.attended}}
+                <td class="attended">{{this.value}}</td>
+                {{else}}
+                <td>{{this.value}}</td>
+                {{/if}}
+              {{else}}
+              <td class="empty"></td>
+              {{/if}}
+            {{/each}}
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
