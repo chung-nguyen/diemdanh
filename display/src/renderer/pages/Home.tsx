@@ -36,7 +36,7 @@ export const Home = () => {
           Sơ đồ Phòng họp
         </Link>        
       </div>
-      <div className="flex justify-center items-center min-h-screen bg-base-200">
+      <div className="flex justify-center items-center min-h-screen bg-base-100">
         <div className="card w-96 bg-base-100 shadow-xl">
           <div className="card-body">
             <h2 className="card-title">Cài đặt</h2>

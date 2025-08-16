@@ -1,6 +1,9 @@
+@import "@fontsource/merriweather/400.css";
+@import "@fontsource/merriweather/700.css";
+
 @import "tailwindcss";
 @plugin "daisyui";
 
 @theme {
-  --font-times: "Cambria", sans-serif; 
+  --font-times: "Merriweather", sans-serif; 
 }

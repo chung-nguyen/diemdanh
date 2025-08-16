@@ -9,19 +9,19 @@ import { AppInfoModel } from '../../models/AppInfo';
 
 type ViewModelContextType = {
   appInfo: AppInfoModel;
-  qrCode: string;
+  qrCode: { code: string };
 };
 
 const ViewModelContext = createContext<ViewModelContextType>({
   appInfo: new AppInfoModel(),
-  qrCode: '',
+  qrCode: { code: '' },
 });
 
 export const ViewModelProvider = (props: PropsWithChildren) => {
   const { children } = props;
 
   const [appInfo, setAppInfo] = useState(new AppInfoModel());
-  const [qrCode, setQrCode] = useState('');
+  const [qrCode, setQrCode] = useState({ code: '' });
 
   useEffect(() => {
     const ipcInitDataFinish = window.electron?.ipcRenderer.on(
@@ -33,9 +33,10 @@ export const ViewModelProvider = (props: PropsWithChildren) => {
     const ipcQrCodeFinish = window.electron?.ipcRenderer.on(
       'qr-code',
       (code: string) => {
-        setQrCode(code);
+        setQrCode({ code });
       },
     );
+
     window.electron?.ipcRenderer.sendMessage('init-data', []);
 
     return () => {

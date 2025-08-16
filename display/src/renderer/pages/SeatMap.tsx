@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { useViewModel } from '../provider/ViewModel';
 
+import seatMapBgImage from '../../../assets/images/seatbg.jpg'
+
 export const SeatMap = () => {
   const [sheet, setSheet] = useState<any[][]>([]);
   const { appInfo } = useViewModel();
@@ -33,9 +35,9 @@ export const SeatMap = () => {
   sheet.forEach((row) => {
     row.forEach((cell) => {
       if (cell && !Number.isNaN(cell.value) && cell.fill?.pattern === 'solid') {
-        attendedBgColor = '#' + cell.fill?.fgColor.argb.substring(2); 
+        attendedBgColor = '#' + cell.fill?.fgColor.argb.substring(2);
       }
-    })
+    });
   });
 
   return (
@@ -43,7 +45,7 @@ export const SeatMap = () => {
       <div className="absolute top-0 left-0 w-screen h-screen">
         <figure className="w-full h-full">
           <img
-            src="/images/seatbg.jpg"
+            src={seatMapBgImage}
             alt="Background"
             className="object-contain w-full h-full"
           />
@@ -60,16 +62,16 @@ export const SeatMap = () => {
                     {row.map((cell, index) => {
                       if (cell) {
                         let value = cell.value;
-                        
+
                         if (value === 'X') {
-                          let backgroundColor = '#' + cell.fill?.fgColor.argb.substring(2);
+                          let backgroundColor =
+                            '#' + cell.fill?.fgColor.argb.substring(2);
                           return (
                             <td
                               key={index}
                               className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
                               style={{ background: backgroundColor }}
-                            >
-                            </td>
+                            ></td>
                           );
                         } else if (cell.attended) {
                           return (

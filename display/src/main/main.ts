@@ -38,13 +38,17 @@ ipcMain.on('ipc-example', async (event, arg) => {
 });
 
 ipcMain.on('init-data', async (event) => {
-  dataProvider.appInfo.localIpAddress = getLocalIp();
+  dataProvider.appInfo.localIpAddress = getLocalIp();  
   event.reply('init-data', dataProvider.appInfo);
 });
 
 ipcMain.on('save-data', async (event, appInfo) => {
   dataProvider.appInfo = new AppInfoModel(appInfo);
   dataProvider.save();
+
+  if (mainWindow) {
+    proxyServer.run(dataProvider.appInfo.localPort, mainWindow);
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {

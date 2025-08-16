@@ -5,13 +5,19 @@ import { BrowserWindow } from 'electron';
 export class ProxyServer {
   private server: http.Server | null;
   private mainWindow: BrowserWindow | null;
+  private currentPort: number;
 
   constructor() {
     this.server = null;
     this.mainWindow = null;
+    this.currentPort = 0;
   }
 
   public run(port: number, mainWindow: BrowserWindow) {
+    if (this.currentPort === port) {
+      return;
+    }    
+
     this.stop();
 
     this.mainWindow = mainWindow;
@@ -19,10 +25,11 @@ export class ProxyServer {
       this.handleRequest(req, res),
     );
     server.listen(port, '0.0.0.0', () => {
-      console.log('Server is running at http://localhost:3000');
+      console.log(`Server is running at ${port}`);
     });
 
     this.server = server;
+    this.currentPort = port;
   }
 
   public stop() {
