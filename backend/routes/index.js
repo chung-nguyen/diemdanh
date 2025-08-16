@@ -205,15 +205,19 @@ router.get("/dd/:code", async function (req, res, next) {
 router.get("/welcome/:code", async function (req, res, next) {
   const { code } = req.params;
 
-  try {
-    const attendanceId = Buffer.from(code, "base64").toString("ascii");
+  const attendanceId = Buffer.from(code, "base64").toString("ascii");
+  const attendance = await Attendance.findById(attendanceId).populate(
+    "guestId meetingId"
+  );
 
-    const attendance = await Attendance.findById(attendanceId).populate(
-      "guestId meetingId"
-    );
-    if (attendance) {
-      const guest = attendance.guestId;
-      const meeting = attendance.meetingId;
+  const guest = attendance.guestId || {};
+  let meeting = attendance.meetingId;
+  if (!meeting) {
+    meeting = await Meeting.findOne();
+  }
+
+  try {    
+    if (attendance) {      
 
       if (attendance.status !== AttendanceStatus.CHECKED_IN) {
         attendance.status = AttendanceStatus.CHECKED_IN;
@@ -236,16 +240,8 @@ router.get("/welcome/:code", async function (req, res, next) {
     console.error(ex);
   }
 
-  try {
-    const attendanceId = Buffer.from(code, "base64").toString("ascii");
-
-    const attendance = await Attendance.findById(attendanceId).populate(
-      "guestId meetingId"
-    );
+  try {    
     if (attendance) {
-      const guest = attendance.guestId;
-      const meeting = attendance.meetingId;
-
       const guestImageURL = `/photo/${guest.idNumber}.jpg`;
 
       res.json({
