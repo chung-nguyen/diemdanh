@@ -216,8 +216,11 @@ async function updateSeatMap(meetingId, filePath, range) {
     const sheetRow = worksheet.getRow(row);
     for (let col = startCol; col <= endCol; ++col) {
       const cell = sheetRow.getCell(col);
-      if (cell) {
-        seats[`${row}:${col}`] = cell.value;
+      if (cell) {        
+        seats[`${row}:${col}`] = {
+          value: cell.value,
+          fill: cell.fill
+        };
       }
     }
   }

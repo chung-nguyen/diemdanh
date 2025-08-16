@@ -13,7 +13,9 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { resolveHtmlPath, getLocalIp } from './util';
+import { AppInfoModel } from '../models/AppInfo';
+import { DataProvider } from './data';
 
 class AppUpdater {
   constructor() {
@@ -30,6 +32,17 @@ ipcMain.on('ipc-example', async (event, arg) => {
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
 });
+
+ipcMain.on('init-data', async (event) => {  
+  DataProvider.appInfo.localIpAddress = getLocalIp();
+
+  event.reply('init-data', DataProvider.appInfo);
+});
+
+ipcMain.on('save-data', async (event, appInfo) => {
+  DataProvider.appInfo = new AppInfoModel(appInfo);
+  DataProvider.save();
+})
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -127,6 +140,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    DataProvider.load();
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
