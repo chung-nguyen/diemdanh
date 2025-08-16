@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@theme {
+  --font-times: "Cambria", sans-serif; 
+}

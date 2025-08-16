@@ -16,6 +16,10 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath, getLocalIp } from './util';
 import { AppInfoModel } from '../models/AppInfo';
 import { DataProvider } from './data';
+import { ProxyServer } from './proxy';
+
+const proxyServer = new ProxyServer();
+const dataProvider = new DataProvider();
 
 class AppUpdater {
   constructor() {
@@ -33,15 +37,15 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('init-data', async (event) => {  
-  DataProvider.appInfo.localIpAddress = getLocalIp();
-  event.reply('init-data', DataProvider.appInfo);
+ipcMain.on('init-data', async (event) => {
+  dataProvider.appInfo.localIpAddress = getLocalIp();
+  event.reply('init-data', dataProvider.appInfo);
 });
 
 ipcMain.on('save-data', async (event, appInfo) => {
-  DataProvider.appInfo = new AppInfoModel(appInfo);
-  DataProvider.save();
-})
+  dataProvider.appInfo = new AppInfoModel(appInfo);
+  dataProvider.save();
+});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -122,6 +126,8 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+
+  proxyServer.run(dataProvider.appInfo.localPort, mainWindow);
 };
 
 /**
@@ -138,13 +144,17 @@ app.on('window-all-closed', () => {
 
 app
   .whenReady()
-  .then(async () => {    
-    await DataProvider.load();  
-    createWindow();
+  .then(async () => {
+    await dataProvider.load();
+
+    createWindow();    
+
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
-      if (mainWindow === null) createWindow();
+      if (mainWindow === null) {
+        createWindow();
+      }
     });
   })
   .catch(console.log);

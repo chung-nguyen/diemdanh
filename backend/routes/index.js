@@ -1,11 +1,11 @@
-var express = require('express');
-var jwt = require('jsonwebtoken');
-var moment = require('moment');
-var logger = require('../logger');
+var express = require("express");
+var jwt = require("jsonwebtoken");
+var moment = require("moment");
+var logger = require("../logger");
 
-const { verifyAuthorization } = require('../utils/auth-utils');
-const { Attendance, Admin, Meeting } = require('../models');
-const { AttendanceStatus } = require('../models/attendance');
+const { verifyAuthorization } = require("../utils/auth-utils");
+const { Attendance, Admin, Meeting } = require("../models");
+const { AttendanceStatus } = require("../models/attendance");
 
 var router = express.Router();
 
@@ -21,15 +21,15 @@ function jwtSign(payload, secret, expiresIn) {
   });
 }
 
-router.get('/home', async function (req, res, next) {
-  res.render('index');
+router.get("/home", async function (req, res, next) {
+  res.render("index");
 });
 
-router.get('/dd/login', async function (req, res, next) {
-  res.render('login', { code: 'X' });
+router.get("/dd/login", async function (req, res, next) {
+  res.render("login", { code: "X" });
 });
 
-router.post('/dd/login/:code', async function (req, res, next) {
+router.post("/dd/login/:code", async function (req, res, next) {
   const { code } = req.params;
 
   const { username, password } = req.body;
@@ -37,12 +37,12 @@ router.post('/dd/login/:code', async function (req, res, next) {
 
   let me = await Admin.findById(username);
   if (!me) {
-    res.render('login', { code, error: 'Đăng nhập thất bại' });
+    res.render("login", { code, error: "Đăng nhập thất bại" });
     return;
   }
 
   if (me.password !== password) {
-    res.render('login', { code, error: 'Đăng nhập thất bại' });
+    res.render("login", { code, error: "Đăng nhập thất bại" });
     return;
   }
 
@@ -52,27 +52,33 @@ router.post('/dd/login/:code', async function (req, res, next) {
     role: me.role,
   };
 
-  const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+  const tokenSalt = process.env.WEB_TOKEN_SALT || "salt";
   const mid = Math.floor(tokenSalt.length / 2);
-  const accessToken = await jwtSign(accessPayload, tokenSalt.slice(0, mid), '1d');
+  const accessToken = await jwtSign(
+    accessPayload,
+    tokenSalt.slice(0, mid),
+    "1d"
+  );
 
-  res.cookie('authorization', `Bearer ${accessToken}`);
+  res.cookie("authorization", `Bearer ${accessToken}`);
   res.redirect(`/dd/${code}`);
 });
 
-router.get('/dd/confirm/:code', async function (req, res, next) {
+router.get("/dd/confirm/:code", async function (req, res, next) {
   const { code } = req.params;
 
   const cookies = req.cookies || {};
   try {
-    const tokenSalt = process.env.WEB_TOKEN_SALT || 'salt';
+    const tokenSalt = process.env.WEB_TOKEN_SALT || "salt";
     const mid = Math.floor(tokenSalt.length / 2);
     await verifyAuthorization(cookies.authorization, tokenSalt.slice(0, mid));
 
     try {
-      const attendanceId = Buffer.from(code, 'base64').toString('ascii');
+      const attendanceId = Buffer.from(code, "base64").toString("ascii");
 
-      const attendance = await Attendance.findById(attendanceId).populate('guestId meetingId');
+      const attendance = await Attendance.findById(attendanceId).populate(
+        "guestId meetingId"
+      );
       if (attendance) {
         const guest = attendance.guestId;
         const meeting = attendance.meetingId;
@@ -93,13 +99,13 @@ router.get('/dd/confirm/:code', async function (req, res, next) {
   res.redirect(`/dd/${code}`);
 });
 
-router.get('/dd/:code', async function (req, res, next) {
+router.get("/dd/:code", async function (req, res, next) {
   const { code } = req.params;
   const apiKey = req.query.api;
   const cookies = req.cookies || {};
 
-  if (code === 'X') {
-    res.render('attendance', { error: 'Đã login vào hệ thống' });
+  if (code === "X") {
+    res.render("attendance", { error: "Đã login vào hệ thống" });
     return;
   }
 
@@ -111,9 +117,11 @@ router.get('/dd/:code', async function (req, res, next) {
     // }
 
     try {
-      const attendanceId = Buffer.from(code, 'base64').toString('ascii');
+      const attendanceId = Buffer.from(code, "base64").toString("ascii");
 
-      const attendance = await Attendance.findById(attendanceId).populate('guestId meetingId');
+      const attendance = await Attendance.findById(attendanceId).populate(
+        "guestId meetingId"
+      );
       if (attendance) {
         const guest = attendance.guestId;
         const meeting = attendance.meetingId;
@@ -122,9 +130,17 @@ router.get('/dd/:code', async function (req, res, next) {
           attendance.status = AttendanceStatus.CHECKED_IN;
           attendance.checkInTime = new Date();
           await attendance.save();
-          logger.info(`[check-in] ${guest.idNumber} attended at ${meeting._id} at time ${attendance.checkInTime.toString()}`);
+          logger.info(
+            `[check-in] ${guest.idNumber} attended at ${
+              meeting._id
+            } at time ${attendance.checkInTime.toString()}`
+          );
         } else {
-          logger.warn(`[check-in] ${guest.idNumber} redo at ${meeting._id} at time ${attendance.checkInTime.toString()}`);
+          logger.warn(
+            `[check-in] ${guest.idNumber} redo at ${
+              meeting._id
+            } at time ${attendance.checkInTime.toString()}`
+          );
         }
       }
     } catch (ex) {
@@ -142,9 +158,11 @@ router.get('/dd/:code', async function (req, res, next) {
     // }
 
     try {
-      const attendanceId = Buffer.from(code, 'base64').toString('ascii');
+      const attendanceId = Buffer.from(code, "base64").toString("ascii");
 
-      const attendance = await Attendance.findById(attendanceId).populate('guestId meetingId');
+      const attendance = await Attendance.findById(attendanceId).populate(
+        "guestId meetingId"
+      );
       if (attendance) {
         const guest = attendance.guestId;
         const meeting = attendance.meetingId;
@@ -157,10 +175,10 @@ router.get('/dd/:code', async function (req, res, next) {
 
         const guestImageURL = `/photo/${guest.idNumber}.jpg`;
 
-        res.render('attendance', {
+        res.render("attendance", {
           code,
           guestImageURL,
-          attendTime: moment(attendance.checkInTime).format('hh:mm DD/MM/YYYY'),
+          attendTime: moment(attendance.checkInTime).format("hh:mm DD/MM/YYYY"),
           guestName: guest.fullName,
           guestID: guest.idNumber,
           guestEmail: guest.email,
@@ -172,25 +190,98 @@ router.get('/dd/:code', async function (req, res, next) {
           isCheckedIn: attendance.status === AttendanceStatus.CHECKED_IN,
         });
       } else {
-        res.render('attendance', { error: 'Mã QR không hợp lệ' });
+        res.render("attendance", { error: "Mã QR không hợp lệ" });
       }
     } catch (ex) {
       console.error(ex);
-      res.render('attendance', { error: 'Mã QR không hợp lệ' });
+      res.render("attendance", { error: "Mã QR không hợp lệ" });
     }
   } catch (ex) {
     console.error(ex);
-    res.render('login', { code });
+    res.render("login", { code });
   }
 });
 
-router.get('/seatmap/:meeting', async function (req, res, next) {
+router.get("/welcome/:code", async function (req, res, next) {
+  const { code } = req.params;
+
+  try {
+    const attendanceId = Buffer.from(code, "base64").toString("ascii");
+
+    const attendance = await Attendance.findById(attendanceId).populate(
+      "guestId meetingId"
+    );
+    if (attendance) {
+      const guest = attendance.guestId;
+      const meeting = attendance.meetingId;
+
+      if (attendance.status !== AttendanceStatus.CHECKED_IN) {
+        attendance.status = AttendanceStatus.CHECKED_IN;
+        attendance.checkInTime = new Date();
+        await attendance.save();
+        logger.info(
+          `[check-in] ${guest.idNumber} attended at ${
+            meeting._id
+          } at time ${attendance.checkInTime.toString()}`
+        );
+      } else {
+        logger.warn(
+          `[check-in] ${guest.idNumber} redo at ${
+            meeting._id
+          } at time ${attendance.checkInTime.toString()}`
+        );
+      }
+    }
+  } catch (ex) {
+    console.error(ex);
+  }
+
+  try {
+    const attendanceId = Buffer.from(code, "base64").toString("ascii");
+
+    const attendance = await Attendance.findById(attendanceId).populate(
+      "guestId meetingId"
+    );
+    if (attendance) {
+      const guest = attendance.guestId;
+      const meeting = attendance.meetingId;
+
+      const guestImageURL = `/photo/${guest.idNumber}.jpg`;
+
+      res.json({
+        code,
+        guestImageURL,
+        attendTime: moment(attendance.checkInTime).format("hh:mm DD/MM/YYYY"),
+        guestName: guest.fullName,
+        guestID: guest.idNumber,
+        guestEmail: guest.email,
+        meetingName: meeting.name,
+        guestOffice: guest.office,
+        guestWorkplace: guest.workplace,
+        guestPhoneNumber: guest.phoneNumber,
+        guestEmail: guest.email,
+        isCheckedIn: attendance.status === AttendanceStatus.CHECKED_IN,
+      });
+    } else {
+      res.json({ error: "Mã QR không hợp lệ" });
+    }
+  } catch (ex) {
+    console.error(ex);
+    res.json({ error: ex });
+  }
+});
+
+router.get("/seatmap/:meeting", async function (req, res, next) {
   const meetingId = req.params.meeting;
-  
-  const meeting = await Meeting.findById(meetingId).populate('seatmapId').lean();
+
+  const meeting = await Meeting.findById(meetingId)
+    .populate("seatmapId")
+    .lean();
   const seatmap = meeting.seatmapId;
 
-  const attendances = await Attendance.find({ meetingId }).populate('guestId').lean();
+  const attendances = await Attendance.find({ meetingId })
+    .populate("guestId")
+    .lean();
 
   const sheet = [];
   const { startCol, startRow, endCol, endRow, seats } = seatmap;
@@ -206,7 +297,7 @@ router.get('/seatmap/:meeting', async function (req, res, next) {
       if (attendance && attendance.status === AttendanceStatus.CHECKED_IN) {
         attended = true;
       }
-      row.push(value ? { value, attended, fill } : null); 
+      row.push(value ? { value, attended, fill } : null);
     }
     sheet.push(row);
   }
@@ -214,25 +305,26 @@ router.get('/seatmap/:meeting', async function (req, res, next) {
   res.json({ sheet });
 });
 
-router.get('/sample', async function (req, res, next) {
-  res.render('attendance', {
-    code: 'XXX',
-    guestImageURL: 'xxx',
-    attendTime: '123',
-    guestName: 'ABC',
-    guestID: '123',
-    guestEmail: '123',
-    meetingName: '123',
-    guestOffice: 'Bí thư Đảng bộ các cơ quan Đảng, Phó Bí thư Thường trực Đảng ủy phường',
-    guestWorkplace: '123',
-    guestPhoneNumber: '123',
-    guestEmail: '123',
-    isCheckedIn: true
+router.get("/sample", async function (req, res, next) {
+  res.render("attendance", {
+    code: "XXX",
+    guestImageURL: "xxx",
+    attendTime: "123",
+    guestName: "ABC",
+    guestID: "123",
+    guestEmail: "123",
+    meetingName: "123",
+    guestOffice:
+      "Bí thư Đảng bộ các cơ quan Đảng, Phó Bí thư Thường trực Đảng ủy phường",
+    guestWorkplace: "123",
+    guestPhoneNumber: "123",
+    guestEmail: "123",
+    isCheckedIn: true,
   });
 });
 
-router.get('/fc', async function (req, res, next) {
-  res.render('capture', {});
+router.get("/fc", async function (req, res, next) {
+  res.render("capture", {});
 });
 
 module.exports = router;

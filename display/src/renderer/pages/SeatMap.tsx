@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { useViewModel } from '../provider/ViewModel';
-import { Link } from 'react-router-dom';
-
-const BG_COLOR: Record<number, string> = {
-  64: 'bg-blue-400',
-};
 
 export const SeatMap = () => {
   const [sheet, setSheet] = useState<any[][]>([]);

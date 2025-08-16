@@ -12,7 +12,7 @@ async function fileExists(fp: string) {
   return false;
 }
 
-class DataProviderClass {
+export class DataProvider {
   public appInfo: AppInfoModel;
 
   constructor() {
@@ -38,5 +38,3 @@ class DataProviderClass {
     await fs.promises.writeFile(settingsPath, JSON.stringify(this.appInfo));
   }
 }
-
-export const DataProvider = new DataProviderClass();

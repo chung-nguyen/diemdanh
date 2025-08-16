@@ -29,8 +29,8 @@ export const Home = () => {
   return (
     <div className="w-full min-h-screen flex items-center bg-base-100">
       <div className="flex flex-1 bg-base-100 justify-center items-center flex-col gap-4">        
-        <Link to='/attendance' className="btn btn-primary w-64">
-          Điểm danh Đại biểu
+        <Link to='/welcome' className="btn btn-primary w-64">
+          Chào mừng Đại biểu
         </Link>
         <Link to='/seat-map' className="btn btn-primary w-64">
           Sơ đồ Phòng họp

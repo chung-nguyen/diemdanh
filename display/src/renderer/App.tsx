@@ -4,6 +4,7 @@ import './App.css';
 import { ViewModelProvider } from './provider/ViewModel';
 import { Home } from './pages/Home';
 import { SeatMap } from './pages/SeatMap';
+import { Welcome } from './pages/Welcome';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/seat-map" element={<SeatMap />} />
+          <Route path="/welcome" element={<Welcome />} />
         </Routes>
       </Router>
     </ViewModelProvider>
