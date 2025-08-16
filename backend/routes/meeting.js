@@ -2,7 +2,7 @@ var path = require('path');
 var fs = require('fs');
 var express = require('express');
 var Excel = require('exceljs');
-var PDFDocument = require("pdfkit");
+var PDFDocument = require('pdfkit');
 var QRCode = require('qrcode');
 
 const { Meeting, Attendance, Guest } = require('../models');
@@ -23,10 +23,15 @@ router.get('/', async function (req, res, next) {
     .limit(pageSize);
 
   if (sort) {
-    findCursor = findCursor.sort({ [sort]: direction === 'ascend' ? 'asc' : 'desc' });
+    findCursor = findCursor.sort({
+      [sort]: direction === 'ascend' ? 'asc' : 'desc',
+    });
   }
 
-  const [data, total] = await Promise.all([findCursor.exec(), Meeting.countDocuments(filter)]);
+  const [data, total] = await Promise.all([
+    findCursor.exec(),
+    Meeting.countDocuments(filter),
+  ]);
 
   res.status(200).json({ data, total, success: true });
 });
@@ -39,7 +44,10 @@ router.get('/generate/:id', async function (req, res, next) {
   const { id } = req.params;
   const [meeting, attendances] = await Promise.all([
     Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id }).sort({ seat: 1 }).populate('guestId').lean(),
+    Attendance.find({ meetingId: id })
+      .sort({ seat: 1 })
+      .populate('guestId')
+      .lean(),
   ]);
 
   await generateExcelInviteSheet(meeting, attendances);
@@ -51,7 +59,10 @@ router.get('/print/:id', async function (req, res, next) {
   const { id } = req.params;
   const [meeting, attendances] = await Promise.all([
     Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id }).sort({ seat: 1 }).populate('guestId').lean(),
+    Attendance.find({ meetingId: id })
+      .sort({ seat: 1 })
+      .populate('guestId')
+      .lean(),
   ]);
 
   await printQRCodesSheet(meeting, attendances);
@@ -67,6 +78,42 @@ router.get('/report/:id', async function (req, res, next) {
   ]);
 
   res.status(200).json({ success: true, data: { meeting, attendances } });
+});
+
+router.get('/reset/:id', async function (req, res, next) {
+  const { id } = req.params;
+
+  const [meeting, attendances] = await Promise.all([
+    Meeting.findById(id).lean(),
+    Attendance.find({ meetingId: id }).populate('guestId').lean(),
+  ]);
+
+  // Backup first
+  const today = new Date();
+  const todayString =
+    today.getFullYear() +
+    String(today.getMonth() + 1).padStart(2, '0') +
+    String(today.getDate()).padStart(2, '0') +
+    '-' +
+    String(today.getHours()).padStart(2, '0') +
+    String(today.getMinutes()).padStart(2, '0') +
+    String(today.getSeconds()).padStart(2, '0');
+  const backupFilePath = path.join(
+    DEFAULT_SETTINGS.outputPath,
+    'backup - ' + meeting.name + ' - ' + todayString + '.json'
+  );
+  await fs.promises.writeFile(
+    backupFilePath,
+    JSON.stringify(attendances),
+    'utf-8'
+  );
+
+  await Attendance.updateMany(
+    { meetingId: id },
+    { status: AttendanceStatus.UNKNOWN }
+  );
+
+  res.status(200).json({ success: true, data: {} });
 });
 
 router.get('/:id', async function (req, res, next) {
@@ -92,7 +139,9 @@ router.put('/:id', async function (req, res, next) {
   const { id } = req.params;
   const doc = await Meeting.findOneAndUpdate(
     { _id: id },
-    Object.fromEntries(Object.entries(req.body).filter(([_, value]) => !!value)),
+    Object.fromEntries(
+      Object.entries(req.body).filter(([_, value]) => !!value)
+    ),
     { new: true }
   );
   res.status(200).json({ data: doc.toObject(), success: true });
@@ -195,7 +244,7 @@ router.post('/import-seatmap/:meeting', async function (req, res) {
 
 async function updateSeatMap(meetingId, filePath, range) {
   const workbook = new Excel.Workbook();
-  await workbook.xlsx.readFile(filePath);  
+  await workbook.xlsx.readFile(filePath);
 
   if (!workbook) {
     throw new Error('Failed to read worksheet');
@@ -209,17 +258,17 @@ async function updateSeatMap(meetingId, filePath, range) {
   const [start, end] = range.split(':');
   const [startCol, startRow] = parseCell(start);
   const [endCol, endRow] = parseCell(end);
-  
+
   const seats = {};
   const worksheet = workbook.worksheets[0];
   for (let row = startRow; row <= endRow; ++row) {
     const sheetRow = worksheet.getRow(row);
     for (let col = startCol; col <= endCol; ++col) {
       const cell = sheetRow.getCell(col);
-      if (cell) {        
+      if (cell) {
         seats[`${row}:${col}`] = {
           value: cell.value,
-          fill: cell.fill
+          fill: cell.fill,
         };
       }
     }
@@ -231,7 +280,7 @@ async function updateSeatMap(meetingId, filePath, range) {
     startCol,
     endRow,
     endCol,
-    seats
+    seats,
   });
 
   const seatData = await seatMap.save();
@@ -262,7 +311,7 @@ async function updateMeetingSheet(meetingId, filePath) {
     fullName: 0,
     office: 0,
     workplace: 0,
-    phoneNumber: 0
+    phoneNumber: 0,
   };
 
   let promises = [];
@@ -292,7 +341,10 @@ async function updateMeetingSheet(meetingId, filePath) {
         } else if (value.toLowerCase().includes('đơn vị')) {
           headerRowScanned = true;
           headerColumnIndex.workplace = index;
-        } else if (value.toLowerCase().includes('đt') || value.toLowerCase().includes('điện thoại')) {
+        } else if (
+          value.toLowerCase().includes('đt') ||
+          value.toLowerCase().includes('điện thoại')
+        ) {
           headerRowScanned = true;
           headerColumnIndex.phoneNumber = index;
         }
@@ -302,7 +354,7 @@ async function updateMeetingSheet(meetingId, filePath) {
     }
   });
 
-  const guestIds = await Promise.all(promises);    
+  const guestIds = await Promise.all(promises);
 
   await Promise.all(
     guestIds.map(async (guestId, index) => {
@@ -339,7 +391,7 @@ async function analyzeMeetingSheet(filePath) {
     fullName: 0,
     office: 0,
     workplace: 0,
-    phoneNumber: 0
+    phoneNumber: 0,
   };
 
   let promises = [];
@@ -369,7 +421,10 @@ async function analyzeMeetingSheet(filePath) {
         } else if (value.toLowerCase().includes('đơn vị')) {
           headerRowScanned = true;
           headerColumnIndex.workplace = index;
-        } else if (value.toLowerCase().includes('đt') || value.toLowerCase().includes('điện thoại')) {
+        } else if (
+          value.toLowerCase().includes('đt') ||
+          value.toLowerCase().includes('điện thoại')
+        ) {
           headerRowScanned = true;
           headerColumnIndex.phoneNumber = index;
         }
@@ -426,7 +481,8 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
     guest.fullName = values[headerColumnIndex.fullName] || guest.fullName;
     guest.office = values[headerColumnIndex.office] || guest.office;
     guest.workplace = values[headerColumnIndex.workplace] || guest.workplace;
-    guest.phoneNumber = values[headerColumnIndex.phoneNumber] || guest.phoneNumber;
+    guest.phoneNumber =
+      values[headerColumnIndex.phoneNumber] || guest.phoneNumber;
     await guest.save();
   } else {
     guest = new Guest({
@@ -444,7 +500,7 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
 
 async function printQRCodesSheet(meeting, attendances) {
   // === SETTINGS ===
-  const cmToPt = cm => (cm / 2.54) * 72; // convert cm to points
+  const cmToPt = (cm) => (cm / 2.54) * 72; // convert cm to points
 
   const frameWidth = cmToPt(5);
   const frameHeight = cmToPt(6.5);
@@ -452,12 +508,19 @@ async function printQRCodesSheet(meeting, attendances) {
   const spacing = cmToPt(1);
 
   const doc = new PDFDocument({
-    size: "A4",
-    margin: 0
+    size: 'A4',
+    margin: 0,
   });
 
-  doc.pipe(fs.createWriteStream(path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.pdf')));
-  doc.registerFont('Roboto-Bold', path.join(__dirname, '../data/Roboto-Bold.ttf'));
+  doc.pipe(
+    fs.createWriteStream(
+      path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.pdf')
+    )
+  );
+  doc.registerFont(
+    'Roboto-Bold',
+    path.join(__dirname, '../data/Roboto-Bold.ttf')
+  );
 
   let x = spacing;
   let y = spacing;
@@ -472,7 +535,7 @@ async function printQRCodesSheet(meeting, attendances) {
     // Generate QR code
     const qrData = await QRCode.toBuffer(checkInURL, {
       width: qrSize,
-      margin: 0
+      margin: 0,
     });
 
     // Draw frame border
@@ -481,18 +544,24 @@ async function printQRCodesSheet(meeting, attendances) {
     // Draw QR code inside frame
     doc.image(qrData, x + (frameWidth - qrSize) / 2, y + cmToPt(0.25), {
       width: qrSize,
-      height: qrSize
+      height: qrSize,
     });
 
     // Draw text (name + id)
-    doc.font('Roboto-Bold').fontSize(10).text(`${guest.fullName}`, x, y + qrSize + cmToPt(0.625), {
-      width: frameWidth,
-      align: "center"
-    });
-    doc.font('Roboto-Bold').fontSize(12).text(`${guest.idNumber}`, x, y + qrSize + cmToPt(1.125), {
-      width: frameWidth,
-      align: "center"
-    });
+    doc
+      .font('Roboto-Bold')
+      .fontSize(10)
+      .text(`${guest.fullName}`, x, y + qrSize + cmToPt(0.625), {
+        width: frameWidth,
+        align: 'center',
+      });
+    doc
+      .font('Roboto-Bold')
+      .fontSize(12)
+      .text(`${guest.idNumber}`, x, y + qrSize + cmToPt(1.125), {
+        width: frameWidth,
+        align: 'center',
+      });
 
     // Move position for next frame
     x += frameWidth + spacing;
@@ -527,7 +596,16 @@ async function generateExcelInviteSheet(meeting, attendances) {
   title.height = 40;
   title.getCell(1).style = { font: { bold: true, size: 16 } };
 
-  const header = worksheet.addRow(['STT', 'Số CCCD', 'Họ và tên', 'Chức vụ', 'Đơn vị', 'Số ĐT', 'Mã QR', 'Hình ảnh']);
+  const header = worksheet.addRow([
+    'STT',
+    'Số CCCD',
+    'Họ và tên',
+    'Chức vụ',
+    'Đơn vị',
+    'Số ĐT',
+    'Mã QR',
+    'Hình ảnh',
+  ]);
   for (let i = 1; i <= 8; ++i) {
     header.getCell(i).style = { font: { bold: true, size: 8 } };
     header.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
@@ -557,11 +635,22 @@ async function generateExcelInviteSheet(meeting, attendances) {
   attendances.forEach((attendance, index) => {
     const guest = attendance.guestId;
 
-    const row = worksheet.addRow([index + 1, guest.idNumber, guest.fullName, guest.office, guest.workplace, guest.phoneNumber]);
+    const row = worksheet.addRow([
+      index + 1,
+      guest.idNumber,
+      guest.fullName,
+      guest.office,
+      guest.workplace,
+      guest.phoneNumber,
+    ]);
     row.height = 100;
     for (let i = 1; i <= 8; ++i) {
       row.getCell(i).style = { font: { size: 8 } };
-      row.getCell(i).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      row.getCell(i).alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true,
+      };
       row.getCell(i).border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
@@ -601,7 +690,10 @@ async function generateExcelInviteSheet(meeting, attendances) {
       });
     }
 
-    const guestPhotoFilePath = path.join(DEFAULT_SETTINGS.photoPath, guest.idNumber + '.jpg');
+    const guestPhotoFilePath = path.join(
+      DEFAULT_SETTINGS.photoPath,
+      guest.idNumber + '.jpg'
+    );
     if (fs.existsSync(guestPhotoFilePath)) {
       const guestPhotoID = workbook.addImage({
         filename: guestPhotoFilePath,
@@ -616,7 +708,9 @@ async function generateExcelInviteSheet(meeting, attendances) {
     }
   });
 
-  await workbook.xlsx.writeFile(path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.xlsx'));
+  await workbook.xlsx.writeFile(
+    path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.xlsx')
+  );
 }
 
 const generateQRCodeBase64 = async (text) => {

@@ -28,7 +28,7 @@ class SettingsActivity : ComponentActivity() {
         val savedProtocol = prefs.getString("protocol", "http")
         val savedIp = prefs.getString("ip_address", "127.0.0.1")
         val savedPort = prefs.getString("http_port", "5005")
-        val savedPath = prefs.getString("http_path", "/dd")
+        val savedPath = prefs.getString("http_path", "/qr")
 
         // Restore UI values
         val protocolArray = resources.getStringArray(R.array.protocols)

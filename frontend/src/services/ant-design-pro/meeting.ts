@@ -127,6 +127,18 @@ export async function printQRSheet(id: string) {
   return response.data;
 }
 
+export async function resetMeeting(id: string) {
+  const response = await request<{
+    data: { meeting: MeetingType; attendances: AttendanceType[] };
+    success?: boolean;
+  }>(`/meeting/reset/${id}`, {
+    method: 'GET',
+    params: {},
+  });
+
+  return response.data;
+}
+
 export async function getCheckInURL() {
   const response = await request<string>('/meeting/checkin-url', {
     method: 'GET',

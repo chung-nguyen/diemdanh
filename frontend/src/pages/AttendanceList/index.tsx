@@ -1,8 +1,19 @@
-import { BookOutlined, DownOutlined, FileExcelOutlined, HomeOutlined, PlusOutlined, PrinterOutlined, SaveOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  BookOutlined,
+  CiCircleOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  HomeOutlined,
+  PlusOutlined,
+  PrinterOutlined,
+  SaveOutlined,
+  UpCircleOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { history, useIntl, useQuery } from '@umijs/max';
-import { Avatar, Button, Dropdown, message, Popconfirm, Space } from 'antd';
+import { Avatar, Button, Dropdown, message, Modal, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
@@ -14,7 +25,13 @@ import {
   updateAttendance,
   type AttendanceType,
 } from '@/services/ant-design-pro/attendance';
-import { generateInviteSheet, getCheckInURL, getMeeting, printQRSheet } from '@/services/ant-design-pro/meeting';
+import {
+  generateInviteSheet,
+  getCheckInURL,
+  getMeeting,
+  printQRSheet,
+  resetMeeting,
+} from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
 import CreateForm from './components/CreateForm';
@@ -140,6 +157,29 @@ const handlePrintQRSheet = async (id: string) => {
   }
 };
 
+const handleResetMeeting = async (id: string) => {
+  Modal.confirm({
+    title: 'Xác nhận',
+    content: 'Chắc chắn reset lại?',
+    okText: 'Có',
+    cancelText: 'Không',
+    async onOk() {
+      const hide = message.loading('Đang xử lý');
+
+      try {
+        await resetMeeting(id);
+        hide();
+        message.success('Đã xử lý thành công');
+        return true;
+      } catch (error: any) {
+        hide();
+        message.error('Vui lòng thử lại!');
+        return false;
+      }
+    },
+  });
+};
+
 const AttendanceList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
@@ -169,7 +209,7 @@ const AttendanceList: React.FC = () => {
 
   const columns: ProColumns<AttendanceType>[] = [
     {
-      title: 'Số ghế',
+      title: 'STT',
       dataIndex: 'seat',
       sorter: true,
     },
@@ -195,7 +235,7 @@ const AttendanceList: React.FC = () => {
       ),
     },
     {
-      title: 'CCCD',
+      title: 'Số ghế',
       dataIndex: 'guestId',
       sorter: true,
       render: (dom, entity) => (entity.guestId as any)?.idNumber,
@@ -275,24 +315,24 @@ const AttendanceList: React.FC = () => {
       hideInTable: true,
       hideInSearch: true,
     },
-    {
-      title: 'Thao tác',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <Popconfirm
-          key="delete"
-          title="Chắc chắn?"
-          onConfirm={async () => {
-            await handleRemove([record]);
-            setSelectedRows([]);
-            actionRef.current?.reloadAndRest?.();
-          }}
-        >
-          <a>Xóa</a>
-        </Popconfirm>,
-      ],
-    },
+    // {
+    //   title: 'Thao tác',
+    //   dataIndex: 'option',
+    //   valueType: 'option',
+    //   render: (_, record) => [
+    //     <Popconfirm
+    //       key="delete"
+    //       title="Chắc chắn?"
+    //       onConfirm={async () => {
+    //         await handleRemove([record]);
+    //         setSelectedRows([]);
+    //         actionRef.current?.reloadAndRest?.();
+    //       }}
+    //     >
+    //       <a>Xóa</a>
+    //     </Popconfirm>,
+    //   ],
+    // },
   ];
 
   return (
@@ -334,47 +374,58 @@ const AttendanceList: React.FC = () => {
             <BookOutlined /> Báo cáo
           </Button>,
 
-          <Dropdown menu={{
-            items: [
-              {
-                label: 'Cập nhật sơ đồ',
-                key: 'updateSeat',
-                icon: <HomeOutlined />,
-              },
-              {
-                label: 'Bổ sung từ Excel',
-                key: 'importExcel',
-                icon: <FileExcelOutlined />,
-              },
-              {
-                label: 'In QR',
-                key: 'printQR',
-                icon: <PrinterOutlined />,
-              }
-            ],
-            onClick: (menuInfo) => {
-              switch (menuInfo.key) {
-                case 'printQR':
-                  handlePrintQRSheet(meetingId);
-                  break;
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  label: 'Cập nhật sơ đồ',
+                  key: 'updateSeat',
+                  icon: <HomeOutlined />,
+                },
+                {
+                  label: 'Bổ sung từ Excel',
+                  key: 'importExcel',
+                  icon: <FileExcelOutlined />,
+                },
+                {
+                  label: 'In QR',
+                  key: 'printQR',
+                  icon: <PrinterOutlined />,
+                },
+                {
+                  label: 'Reset',
+                  key: 'reset',
+                  icon: <UpCircleOutlined />,
+                },
+              ],
+              onClick: (menuInfo) => {
+                switch (menuInfo.key) {
+                  case 'printQR':
+                    handlePrintQRSheet(meetingId);
+                    break;
 
-                case 'importExcel':
-                  handleImportModalVisible(true);
-                  break;
+                  case 'importExcel':
+                    handleImportModalVisible(true);
+                    break;
 
-                case 'updateSeat':
-                  handleSeatModalVisible(true);
-                  break;
-              }
-            }
-          }}>
+                  case 'updateSeat':
+                    handleSeatModalVisible(true);
+                    break;
+
+                  case 'reset':
+                    handleResetMeeting(meetingId);
+                    break;
+                }
+              },
+            }}
+          >
             <Button>
               <Space>
                 Chức năng
                 <DownOutlined />
               </Space>
             </Button>
-          </Dropdown>
+          </Dropdown>,
         ]}
         request={attendances(meetingId)}
         columns={columns}

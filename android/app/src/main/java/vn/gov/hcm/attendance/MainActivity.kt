@@ -67,7 +67,12 @@ class MainActivity : ComponentActivity() {
             {
                 val code = it.text.substringAfterLast("/")
                 val cleanedPath = httpPath.removePrefix("/").removeSuffix("/")
-                val response = sendGetRequest("${protocol}://${ipAddress}:${httpPort}/${cleanedPath}/${code}")
+                val portNum = httpPort.toIntOrNull();
+                if (portNum == 80) {
+                    sendGetRequest("${protocol}://${ipAddress}/${cleanedPath}/${code}")
+                } else {
+                    sendGetRequest("${protocol}://${ipAddress}:${httpPort}/${cleanedPath}/${code}")
+                }
                 runOnUiThread {
                     Toast.makeText(this, code, Toast.LENGTH_LONG).show()
 
@@ -163,7 +168,7 @@ class MainActivity : ComponentActivity() {
         protocol = prefs.getString("protocol", "http") ?: "http"
         ipAddress = prefs.getString("ip_address", "127.0.0.1") ?: "127.0.0.1"
         httpPort = prefs.getString("http_port", "80") ?: ""
-        httpPath = prefs.getString("http_path", "/dd") ?: "/dd"
+        httpPath = prefs.getString("http_path", "/qr") ?: "/qr"
 
         val cleanedPath = httpPath.removePrefix("/").removeSuffix("/")
         Toast.makeText(this, "${protocol}://${ipAddress}:${httpPort}/${cleanedPath}/CODE",Toast.LENGTH_LONG).show()

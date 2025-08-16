@@ -47,6 +47,12 @@ const MeetingReport: React.FC = () => {
 
   const columns: ProColumns<AttendanceType>[] = [
     {
+      title: 'Số Ghế',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => <span>{(entity.guestId as any)?.idNumber}</span>,
+    },
+    {
       title: 'Tên khách mời',
       dataIndex: 'guestId',
       sorter: true,
@@ -120,6 +126,11 @@ const MeetingReport: React.FC = () => {
     }
 
     const schema = [
+      {
+        column: 'Ghế',
+        type: String,
+        value: (entity: AttendanceType) => (entity.guestId as any)?.idNumber,
+      },
       {
         column: 'Tên',
         type: String,
