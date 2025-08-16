@@ -35,7 +35,6 @@ ipcMain.on('ipc-example', async (event, arg) => {
 
 ipcMain.on('init-data', async (event) => {  
   DataProvider.appInfo.localIpAddress = getLocalIp();
-
   event.reply('init-data', DataProvider.appInfo);
 });
 
@@ -139,8 +138,8 @@ app.on('window-all-closed', () => {
 
 app
   .whenReady()
-  .then(() => {
-    DataProvider.load();
+  .then(async () => {    
+    await DataProvider.load();  
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

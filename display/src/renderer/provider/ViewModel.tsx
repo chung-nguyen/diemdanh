@@ -15,13 +15,13 @@ export const ViewModelProvider = (props: PropsWithChildren) => {
   const [appInfo, setAppInfo] = useState(new AppInfoModel());
 
   useEffect(() => {
-    const ipcRemove = window.electron?.ipcRenderer.on('init-data', (appInfo: AppInfoModel) => {
+    const ipcFinish = window.electron?.ipcRenderer.on('init-data', (appInfo: AppInfoModel) => {
       setAppInfo(new AppInfoModel(appInfo));
     });
     window.electron?.ipcRenderer.sendMessage('init-data', []);
 
     return () => {
-      ipcRemove();
+      ipcFinish();
     };
   }, []);
 

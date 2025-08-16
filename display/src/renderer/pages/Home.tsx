@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 
 export const Home = () => {
   const [port, setPort] = useState(5005);
+  const [serverAddress, setServerAddress] = useState('http://localhost:5000');
+  const [meetingId, setMeetingId] = useState('');
 
   const { appInfo } = useViewModel();
 
@@ -12,12 +14,16 @@ export const Home = () => {
     e.preventDefault();
 
     appInfo.localPort = port;
+    appInfo.serverAddress = serverAddress;
+    appInfo.meetingId = meetingId;
 
-    window.electron?.ipcRenderer.sendMessage('save-data', [appInfo]);
-  };
+    window.electron?.ipcRenderer.sendMessage('save-data', appInfo);
+  }; 
 
   useEffect(() => {
     setPort(appInfo.localPort);
+    setServerAddress(appInfo.serverAddress);
+    setMeetingId(appInfo.meetingId);
   }, [appInfo]);
 
   return (
@@ -33,9 +39,9 @@ export const Home = () => {
       <div className="flex justify-center items-center min-h-screen bg-base-200">
         <div className="card w-96 bg-base-100 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">Server Settings</h2>
+            <h2 className="card-title">Cài đặt</h2>
 
-            <form onSubmit={handleSubmit} className="form-control gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col form-control gap-4">
               {/* IP Address */}
               <label className="form-control">
                 <div className="label">
@@ -60,6 +66,32 @@ export const Home = () => {
                   className="input input-bordered"
                   value={port}
                   onChange={(e) => setPort(parseInt(e.target.value))}
+                  required
+                />
+              </label>
+
+              {/* Server address */}
+              <label className="form-control">
+                <div className="label">
+                  <span className="label-text">Địa chỉ server</span>
+                </div>
+                <input
+                  className="input input-bordered"
+                  value={serverAddress}
+                  onChange={(e) => setServerAddress(e.target.value)}
+                  required
+                />
+              </label>
+
+              {/* Meeting ID */}
+              <label className="form-control">
+                <div className="label">
+                  <span className="label-text">Meeting ID</span>
+                </div>
+                <input
+                  className="input input-bordered"
+                  value={meetingId}
+                  onChange={(e) => setMeetingId(e.target.value)}
                   required
                 />
               </label>

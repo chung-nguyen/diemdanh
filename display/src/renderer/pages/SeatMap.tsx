@@ -9,11 +9,12 @@ const BG_COLOR: Record<number, string> = {
 
 export const SeatMap = () => {
   const [sheet, setSheet] = useState<any[][]>([]);
+  const { appInfo } = useViewModel();
 
   const updateSeatmap = async () => {
     try {
       const response = await fetch(
-        'http://localhost:5000/seatmap/6899ee042832bd45fb1de879',
+        `${appInfo.serverAddress}/seatmap/${appInfo.meetingId}`,
       );
 
       const result = await response.json();
