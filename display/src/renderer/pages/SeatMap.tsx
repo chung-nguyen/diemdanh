@@ -33,6 +33,15 @@ export const SeatMap = () => {
     };
   }, []);
 
+  let attendedBgColor = '#FF0000';
+  sheet.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell && !Number.isNaN(cell.value) && cell.fill?.pattern === 'solid') {
+        attendedBgColor = '#' + cell.fill?.fgColor.argb.substring(2); 
+      }
+    })
+  });
+
   return (
     <div className="container mx-auto flex items-center justify-start h-full">
       <div className="absolute top-0 left-0 w-screen h-screen">
@@ -55,27 +64,23 @@ export const SeatMap = () => {
                     {row.map((cell, index) => {
                       if (cell) {
                         let value = cell.value;
+                        
                         if (value === 'X') {
-                          value = '';
-                        }
-
-                        if (cell.fill?.pattern === 'solid') {
                           let backgroundColor = '#' + cell.fill?.fgColor.argb.substring(2);
-                          console.log('hahaha', backgroundColor)
                           return (
                             <td
                               key={index}
                               className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
                               style={{ background: backgroundColor }}
                             >
-                              {value}
                             </td>
                           );
-                        } else if (cell.attended || Math.random() < 0.6) {
+                        } else if (cell.attended) {
                           return (
                             <td
                               key={index}
-                              className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 bg-red-400 border-gray-600 border-solid border-2"
+                              className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
+                              style={{ background: attendedBgColor }}
                             >
                               {value}
                             </td>
