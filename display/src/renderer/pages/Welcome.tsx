@@ -58,6 +58,8 @@ export const Welcome = () => {
     }
   }, []);
 
+  const today = new Date();
+
   return (
     <div className="container mx-auto flex items-center justify-start h-full">
       <div className="absolute top-0 left-0 w-screen h-screen">
@@ -100,7 +102,7 @@ export const Welcome = () => {
           <div className='h-16'></div>
 
           <h1 className="font-times font-bold italic text-7xl text-yellow-300 text-shadow-lg">
-            Bình Quới, ngày 20 tháng 8 năm 2025
+            Bình Quới, ngày {today.getDate()} tháng {today.getMonth() + 1} năm {today.getFullYear()}
           </h1>
 
           <div className='h-18'></div>

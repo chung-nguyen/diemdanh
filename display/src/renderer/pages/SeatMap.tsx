@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useViewModel } from '../provider/ViewModel';
 
-import seatMapBgImage from '../../../assets/images/seatbg.jpg'
+import seatMapBgImage from '../../../assets/images/seatbg.jpg';
 
 export const SeatMap = () => {
   const [sheet, setSheet] = useState<any[][]>([]);
@@ -52,55 +52,80 @@ export const SeatMap = () => {
         </figure>
       </div>
 
-      <div className="absolute top-0 left-0 w-screen h-screen flex">
-        <div className="flex w-full h-full items-center justify-center">
-          <table>
-            <tbody>
-              {sheet.map((row, index) => {
-                return (
-                  <tr key={index}>
-                    {row.map((cell, index) => {
-                      if (cell) {
-                        let value = cell.value;
+      <div className="absolute top-0 left-0 w-screen h-screen flex items-center justify-center">
+        <div className="flex flex-row">
+          <div className="w-96 flex flex-col items-center">
+            <div className="h-72"></div>
+            <h1
+              className="font-times font-bold text-3xl text-yellow-300 text-shadow-lg w-48 h-48 flex items-center justify-center"
+              style={{ background: '#00b0f0' }}
+            >
+              KHÁCH MỜI
+            </h1>
+            <div className="h-48"></div>
+            <h1
+              className="font-times font-bold text-3xl text-yellow-300 text-shadow-lg w-48 h-48 flex items-center justify-center"
+              style={{ background: '#ff0000' }}
+            >
+              ĐẠI BIỂU
+            </h1>
+          </div>
+          <div className="flex-1 flex flex-col gap-4 w-full h-full items-center justify-center">
+            <h1 className="font-times font-bold text-7xl text-red-600 text-shadow-lg">
+              ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QƯỚI
+            </h1>
+            <h1 className="font-times font-bold text-7xl text-red-600 text-shadow-lg">
+              LẦN THỨ I, NHIỆM KỲ 2025-2030
+            </h1>
+            <div className="h-16"></div>
+            <table>
+              <tbody>
+                {sheet.map((row, index) => {
+                  return (
+                    <tr key={index}>
+                      {row.map((cell, index) => {
+                        if (cell) {
+                          let value = cell.value;
 
-                        if (value === 'X') {
-                          let backgroundColor =
-                            '#' + cell.fill?.fgColor.argb.substring(2);
-                          return (
-                            <td
-                              key={index}
-                              className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
-                              style={{ background: backgroundColor }}
-                            ></td>
-                          );
-                        } else if (cell.attended) {
-                          return (
-                            <td
-                              key={index}
-                              className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
-                              style={{ background: attendedBgColor }}
-                            >
-                              {value}
-                            </td>
-                          );
-                        } else {
-                          return (
-                            <td
-                              key={index}
-                              className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 border-gray-600 border-solid border-2"
-                            >
-                              {value}
-                            </td>
-                          );
+                          if (value === 'X') {
+                            let backgroundColor =
+                              '#' + cell.fill?.fgColor.argb.substring(2);
+                            return (
+                              <td
+                                key={index}
+                                className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
+                                style={{ background: backgroundColor }}
+                              ></td>
+                            );
+                          } else if (cell.attended) {
+                            return (
+                              <td
+                                key={index}
+                                className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 text-yellow-200 border-gray-600 border-solid border-2"
+                                style={{ background: attendedBgColor }}
+                              >
+                                {value}
+                              </td>
+                            );
+                          } else {
+                            return (
+                              <td
+                                key={index}
+                                className="w-24 h-16 p-1 text-2xl font-bold text-center text-amber-600 border-gray-600 border-solid border-2"
+                              >
+                                {value}
+                              </td>
+                            );
+                          }
                         }
-                      }
-                      return <td key={index} className="w-32 h-16 p-1"></td>;
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        return <td key={index} className="w-32 h-16 p-1"></td>;
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

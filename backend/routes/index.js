@@ -206,7 +206,7 @@ router.get("/welcome/:code", async function (req, res, next) {
   const { code } = req.params;
 
   const attendanceId = Buffer.from(code, "base64").toString("ascii");
-  const attendance = await Attendance.findById(attendanceId).populate(
+  let attendance = await Attendance.findById(attendanceId).populate(
     "guestId meetingId"
   );
 
@@ -214,11 +214,17 @@ router.get("/welcome/:code", async function (req, res, next) {
   let meeting = attendance.meetingId;
   if (!meeting) {
     meeting = await Meeting.findOne();
+    try {
+      await Attendance.updateOne({ _id: attendance._id }, { meetingId: meeting._id });
+    } catch (ex) {      
+    }
+    attendance = await Attendance.findOne({ meetingId: meeting._id, guestId: guest._id }).populate(
+      "guestId meetingId"
+    );
   }
 
   try {    
     if (attendance) {      
-
       if (attendance.status !== AttendanceStatus.CHECKED_IN) {
         attendance.status = AttendanceStatus.CHECKED_IN;
         attendance.checkInTime = new Date();
