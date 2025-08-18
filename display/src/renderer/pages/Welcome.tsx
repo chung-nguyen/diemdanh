@@ -75,7 +75,7 @@ export const Welcome = () => {
       <div className="absolute top-0 left-0 w-screen h-screen flex">
         <div className="flex w-full h-full flex-col items-center p-8 gap-4">
           <h1 className="font-times font-bold text-7xl text-yellow-300 text-shadow-lg">
-            ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QƯỚI
+            ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QUỚI
           </h1>
           <h1 className="font-times font-bold text-7xl text-yellow-300 text-shadow-lg">
             LẦN THỨ I, NHIỆM KỲ 2025-2030

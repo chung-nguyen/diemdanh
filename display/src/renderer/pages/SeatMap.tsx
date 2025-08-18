@@ -72,7 +72,7 @@ export const SeatMap = () => {
           </div>
           <div className="flex-1 flex flex-col gap-4 w-full h-full items-center justify-center">
             <h1 className="font-times font-bold text-7xl text-red-600 text-shadow-lg">
-              ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QƯỚI
+              ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QUỚI
             </h1>
             <h1 className="font-times font-bold text-7xl text-red-600 text-shadow-lg">
               LẦN THỨ I, NHIỆM KỲ 2025-2030
