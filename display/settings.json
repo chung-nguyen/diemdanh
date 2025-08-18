@@ -1,1 +1,1 @@
-{"localIpAddress":"192.168.1.2","localPort":5005,"serverAddress":"http://localhost:80","meetingId":"6899ee042832bd45fb1de879"}
+{"localIpAddress":"192.168.1.2","localPort":5005,"serverAddress":"http://192.168.0.104:5000","meetingId":"6899ee042832bd45fb1de879"}

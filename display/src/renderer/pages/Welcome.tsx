@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useViewModel } from '../provider/ViewModel';
 
 import welcomeBgImage from '../../../assets/images/welcomebg.png'
+import flagsImage from '../../../assets/images/flags.png'
 
 type GuestData = {
   attendTime: string;
@@ -74,19 +75,24 @@ export const Welcome = () => {
 
       <div className="absolute top-0 left-0 w-screen h-screen flex">
         <div className="flex w-full h-full flex-col items-center p-8 gap-4">
-          <h1 className="font-times font-bold text-7xl text-yellow-300 text-shadow-lg">
+          <div className='h-8'></div>
+          <h1 className="font-times font-bold text-7xl text-shadow-lg" style={{color: '#ff0000'}}>
             ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ PHƯỜNG BÌNH QUỚI
           </h1>
-          <h1 className="font-times font-bold text-7xl text-yellow-300 text-shadow-lg">
+          <h1 className="font-times font-bold text-7xl text-shadow-lg" style={{color: '#ff0000'}}>
             LẦN THỨ I, NHIỆM KỲ 2025-2030
           </h1>
+          <img className='img h-48' src={flagsImage} />
 
           <div className="flex-1"></div>
 
           {guestData && (
             <div className="flex flex-col items-center gap-10">
+              <h1 className="font-times font-bold text-7xl text-shadow-lg" style={{color: '#0000ff'}}>
+                CHÀO MỪNG
+              </h1>
               <h1 className="font-times font-bold text-7xl text-red-600 text-shadow-lg">
-                ĐỒNG CHÍ
+                Đồng chí
               </h1>
               <h1 className="font-times font-bold text-9xl text-red-600 text-shadow-lg">
                 {guestData.guestName}
@@ -101,11 +107,11 @@ export const Welcome = () => {
 
           <div className='h-16'></div>
 
-          <h1 className="font-times font-bold italic text-7xl text-yellow-300 text-shadow-lg">
+          <h1 className="font-times font-bold italic text-7xl text-yellow-300 text-shadow-lg" style={{color: '#ff0000'}}>
             Bình Quới, ngày {today.getDate()} tháng {today.getMonth() + 1} năm {today.getFullYear()}
           </h1>
 
-          <div className='h-18'></div>
+          <div className='h-8'></div>
         </div>
       </div>
     </div>
