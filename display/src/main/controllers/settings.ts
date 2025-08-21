@@ -1,7 +1,7 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { AppInfoModel } from '../models/AppInfo';
+import { AppInfoModel } from '../../models/AppInfo';
 
 async function fileExists(fp: string) {
   try {
@@ -13,7 +13,7 @@ async function fileExists(fp: string) {
   return false;
 }
 
-export class DataProvider {
+export class SettingsProvider {
   public appInfo: AppInfoModel;
 
   constructor() {

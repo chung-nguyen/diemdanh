@@ -15,11 +15,15 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath, getLocalIp } from './util';
 import { AppInfoModel } from '../models/AppInfo';
-import { DataProvider } from './data';
+import { SettingsProvider } from './controllers/settings';
 import { ProxyServer } from './proxy';
+import { IPCEvents } from '../shared/ipcEvents';
+import { MongodController } from './controllers/database';
 
 const proxyServer = new ProxyServer();
-const dataProvider = new DataProvider();
+const settingsProvider = new SettingsProvider();
+
+let mongodController: MongodController | null = null;
 
 class AppUpdater {
   constructor() {
@@ -31,23 +35,46 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+ipcMain.on(IPCEvents.INITIALIZE, async (event) => {
+  settingsProvider.appInfo.localIpAddress = getLocalIp();
+  event.reply(IPCEvents.INITIALIZE, settingsProvider.appInfo);
 });
 
-ipcMain.on('init-data', async (event) => {
-  dataProvider.appInfo.localIpAddress = getLocalIp();  
-  event.reply('init-data', dataProvider.appInfo);
-});
-
-ipcMain.on('save-data', async (event, appInfo) => {
-  dataProvider.appInfo = new AppInfoModel(appInfo);
-  dataProvider.save();
+ipcMain.on(IPCEvents.SAVE_SETTINGS, async (event, appInfo) => {
+  settingsProvider.appInfo = new AppInfoModel(appInfo);
+  settingsProvider.save();
 
   if (mainWindow) {
-    proxyServer.run(dataProvider.appInfo.localPort, mainWindow);
+    proxyServer.run(settingsProvider.appInfo.localPort, mainWindow);
+  }
+});
+
+ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
+  switch (command) {
+    case 'start':
+      if (mongodController) {
+        mongodController.stop();
+      }
+      if (dbPath && port) {
+        mongodController = new MongodController({
+          dbPath,
+          port,
+        });
+        mongodController.start();
+        event.reply(IPCEvents.DATABASE, 'status', mongodController?.isRunning() || false);
+      }
+      break;
+
+    case 'stop':
+      if (mongodController) {
+        mongodController.stop();
+        mongodController = null;
+      }
+      break;
+
+    case 'status':
+      event.reply(IPCEvents.DATABASE, 'status', mongodController?.isRunning() || false);
+      break;
   }
 });
 
@@ -131,7 +158,7 @@ const createWindow = async () => {
   // eslint-disable-next-line
   new AppUpdater();
 
-  proxyServer.run(dataProvider.appInfo.localPort, mainWindow);
+  proxyServer.run(settingsProvider.appInfo.localPort, mainWindow);
 };
 
 /**
@@ -139,6 +166,11 @@ const createWindow = async () => {
  */
 
 app.on('window-all-closed', () => {
+  if (mongodController) {
+    mongodController.stop();
+    mongodController = null;
+  }
+
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
   if (process.platform !== 'darwin') {
@@ -149,9 +181,9 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(async () => {
-    await dataProvider.load();
+    await settingsProvider.load();
 
-    createWindow();    
+    createWindow();
 
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

@@ -1,6 +1,7 @@
 import url from 'url';
 import http from 'http';
 import { BrowserWindow } from 'electron';
+import { IPCEvents } from '../shared/ipcEvents';
 
 export class ProxyServer {
   private server: http.Server | null;
@@ -49,7 +50,7 @@ export class ProxyServer {
       const parts = pathname.split('/');
       const code = parts[parts.length - 1];
       if (code) {
-        this.mainWindow.webContents.send('qr-code', code);
+        this.mainWindow.webContents.send(IPCEvents.QR_CODE, code);
       }
     }
 

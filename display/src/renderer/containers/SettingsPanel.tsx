@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useViewModel } from '../provider/ViewModel';
+import { IPCEvents } from '../../shared/ipcEvents';
 
 export const SettingsPanel = () => {
   const [port, setPort] = useState(5005);
@@ -20,7 +21,7 @@ export const SettingsPanel = () => {
     appInfo.databasePath = databasePath;
     appInfo.databasePort = databasePort;
 
-    window.electron?.ipcRenderer.sendMessage('save-data', appInfo);
+    window.electron?.ipcRenderer.sendMessage(IPCEvents.SAVE_SETTINGS, appInfo);
   };
 
   useEffect(() => {

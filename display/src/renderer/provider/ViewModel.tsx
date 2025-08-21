@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import { AppInfoModel } from '../../models/AppInfo';
+import { IPCEvents } from '../../shared/ipcEvents';
 
 type ViewModelContextType = {
   appInfo: AppInfoModel;
@@ -25,19 +26,19 @@ export const ViewModelProvider = (props: PropsWithChildren) => {
 
   useEffect(() => {
     const ipcInitDataFinish = window.electron?.ipcRenderer.on(
-      'init-data',
+      IPCEvents.INITIALIZE,
       (appInfo: AppInfoModel) => {
         setAppInfo(new AppInfoModel(appInfo));
       },
     );
     const ipcQrCodeFinish = window.electron?.ipcRenderer.on(
-      'qr-code',
+      IPCEvents.QR_CODE,
       (code: string) => {
         setQrCode({ code });
       },
     );
 
-    window.electron?.ipcRenderer.sendMessage('init-data', []);
+    window.electron?.ipcRenderer.sendMessage(IPCEvents.INITIALIZE, []);
 
     return () => {
       ipcInitDataFinish();
