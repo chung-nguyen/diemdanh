@@ -18,11 +18,13 @@ import { AppInfoModel } from '../models/AppInfo';
 import { SettingsProvider } from './controllers/settings';
 import { ProxyServer } from './proxy';
 import { IPCEvents } from '../shared/ipcEvents';
-import { MongodController } from './controllers/database';
+import { MongodController } from './controllers/databaseServer';
+import { MongoConnection } from './controllers/databaseConnection';
 
 const proxyServer = new ProxyServer();
 const settingsProvider = new SettingsProvider();
 
+let mongoConnection = new MongoConnection();
 let mongodController: MongodController | null = null;
 
 class AppUpdater {
@@ -61,7 +63,11 @@ ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
           port,
         });
         mongodController.start();
-        event.reply(IPCEvents.DATABASE, 'status', mongodController?.isRunning() || false);
+        event.reply(
+          IPCEvents.DATABASE,
+          'status',
+          mongodController?.isRunning() || false,
+        );
       }
       break;
 
@@ -73,7 +79,12 @@ ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
       break;
 
     case 'status':
-      event.reply(IPCEvents.DATABASE, 'status', mongodController?.isRunning() || false);
+      event.reply(
+        IPCEvents.DATABASE,
+        'status',
+        mongodController?.isRunning() || false,
+        mongoConnection?.isConnected() || false
+      );
       break;
   }
 });
@@ -182,6 +193,7 @@ app
   .whenReady()
   .then(async () => {
     await settingsProvider.load();
+    await mongoConnection.connect();
 
     createWindow();
 

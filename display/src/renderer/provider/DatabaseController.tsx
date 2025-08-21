@@ -13,18 +13,21 @@ type DatabaseControllerContextType = {
   run: () => void;
   stop: () => void;
   isRunning: boolean;
+  isConnected: boolean;
 };
 
 const DatabaseControllerContext = createContext<DatabaseControllerContextType>({  
   run: () => {},
   stop: () => {},
-  isRunning: false
+  isRunning: false,
+  isConnected: false
 });
 
 export const DatabaseControllerProvider = (props: PropsWithChildren) => {
   const { children } = props;
 
   const [isRunning, setIsRunning] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const { appInfo } = useViewModel();
 
   const run = () => {
@@ -47,10 +50,11 @@ export const DatabaseControllerProvider = (props: PropsWithChildren) => {
 
     const removeIpc = window.electron?.ipcRenderer.on(
       IPCEvents.DATABASE,
-      (command: string, isRunning: boolean) => {
+      (command: string, isRunning: boolean, isConnected) => {
         switch (command) {
           case 'status':
             setIsRunning(isRunning);
+            setIsConnected(isConnected);
             break;
         }        
       },
@@ -64,7 +68,7 @@ export const DatabaseControllerProvider = (props: PropsWithChildren) => {
 
   return (
     <>
-      <DatabaseControllerContext.Provider value={{ run, stop, isRunning }}>
+      <DatabaseControllerContext.Provider value={{ run, stop, isRunning, isConnected }}>
         {children}
       </DatabaseControllerContext.Provider>
     </>

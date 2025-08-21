@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
-
-import { useViewModel } from '../provider/ViewModel';
-import { IPCEvents } from '../../shared/ipcEvents';
 import { useDatabaseController } from '../provider/DatabaseController';
 
 export const DatabaseStatusPanel = () => {
-  const { isRunning } = useDatabaseController();
+  const { isRunning, isConnected } = useDatabaseController();
 
-  return <div>
-    <p>Database Server: {String(isRunning)}</p>
-  </div>
-}
+  return (
+    <div>
+      <p>Database Server: {String(isRunning)}</p>
+      <p>Database Connected: {String(isConnected)}</p>
+    </div>
+  );
+};
