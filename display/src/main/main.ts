@@ -51,7 +51,7 @@ ipcMain.on(IPCEvents.SAVE_SETTINGS, async (event, appInfo) => {
   }
 });
 
-ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
+ipcMain.on(IPCEvents.DATABASE_SERVER, async (event, command, dbPath, port) => {
   switch (command) {
     case 'start':
       if (mongodController) {
@@ -64,7 +64,7 @@ ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
         });
         mongodController.start();
         event.reply(
-          IPCEvents.DATABASE,
+          IPCEvents.DATABASE_SERVER,
           'status',
           mongodController?.isRunning() || false,
         );
@@ -80,7 +80,7 @@ ipcMain.on(IPCEvents.DATABASE, async (event, command, dbPath, port) => {
 
     case 'status':
       event.reply(
-        IPCEvents.DATABASE,
+        IPCEvents.DATABASE_SERVER,
         'status',
         mongodController?.isRunning() || false,
         mongoConnection?.isConnected() || false

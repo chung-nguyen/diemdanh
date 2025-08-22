@@ -34,22 +34,22 @@ export const DatabaseControllerProvider = (props: PropsWithChildren) => {
     if (isRunning) {
       return;
     }
-    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE, 'start', appInfo.databasePath, appInfo.databasePort);
+    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE_SERVER, 'start', appInfo.databasePath, appInfo.databasePort);
   }
 
   const stop = () => {
-    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE, 'stop');
+    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE_SERVER, 'stop');
   }
 
   const updateDatabaseStatus = () => {
-    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE, 'status');
+    window.electron?.ipcRenderer.sendMessage(IPCEvents.DATABASE_SERVER, 'status');
   }
 
   useEffect(() => {
     const interval = setInterval(updateDatabaseStatus, 1000);
 
     const removeIpc = window.electron?.ipcRenderer.on(
-      IPCEvents.DATABASE,
+      IPCEvents.DATABASE_SERVER,
       (command: string, isRunning: boolean, isConnected) => {
         switch (command) {
           case 'status':
