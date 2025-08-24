@@ -5,6 +5,7 @@ import {
   BrowserWindow,
   MenuItemConstructorOptions,
 } from 'electron';
+import path from 'path';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -13,9 +14,11 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
 
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
+  dashboardWindow: BrowserWindow | null;
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
+    this.dashboardWindow = null;
   }
 
   buildMenu(): Menu {
@@ -124,6 +127,13 @@ export default class MenuBuilder {
             this.mainWindow.webContents.toggleDevTools();
           },
         },
+        {
+          label: 'Dashboard',
+          accelerator: 'Alt+Command+D',
+          click: () => {
+            this.showDashboard();
+          },
+        },
       ],
     };
     const subMenuViewProd: MenuItemConstructorOptions = {
@@ -134,6 +144,13 @@ export default class MenuBuilder {
           accelerator: 'Ctrl+Command+F',
           click: () => {
             this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
+          },
+        },
+        {
+          label: 'Dashboard',
+          accelerator: 'Alt+Command+D',
+          click: () => {
+            this.showDashboard();
           },
         },
       ],
@@ -239,9 +256,16 @@ export default class MenuBuilder {
                     this.mainWindow.webContents.toggleDevTools();
                   },
                 },
+                {
+                  label: 'Dashboard',
+                  accelerator: 'Ctrl+D',
+                  click: () => {
+                    this.showDashboard();
+                  },
+                },
               ]
             : [
-              {
+                {
                   label: '&Reload',
                   accelerator: 'Ctrl+R',
                   click: () => {
@@ -255,6 +279,13 @@ export default class MenuBuilder {
                     this.mainWindow.setFullScreen(
                       !this.mainWindow.isFullScreen(),
                     );
+                  },
+                },
+                {
+                  label: 'Dashboard',
+                  accelerator: 'Ctrl+D',
+                  click: () => {
+                    this.showDashboard();
                   },
                 },
               ],
@@ -293,5 +324,46 @@ export default class MenuBuilder {
     ];
 
     return templateDefault;
+  }
+
+  showDashboard() {
+    if (this.dashboardWindow) {
+      return;
+    }
+
+    const RESOURCES_PATH = app.isPackaged
+      ? path.join(process.resourcesPath, 'assets')
+      : path.join(__dirname, '../../assets');
+
+    const getAssetPath = (...paths: string[]): string => {
+      return path.join(RESOURCES_PATH, ...paths);
+    };
+
+    // Dashboard window
+    this.dashboardWindow = new BrowserWindow({
+      show: false,
+      width: 1024,
+      height: 728,
+      icon: getAssetPath('icon.png'),
+      webPreferences: {
+        preload: app.isPackaged
+          ? path.join(__dirname, 'preload.js')
+          : path.join(__dirname, '../../.erb/dll/preload.js'),
+      },
+    });
+
+    this.dashboardWindow.loadFile(getAssetPath('dist/index.html'));
+
+    this.dashboardWindow.on('ready-to-show', () => {
+      if (!this.dashboardWindow) {
+        throw new Error('"dashboardWindow" is not defined');
+      }
+
+      this.dashboardWindow.show();
+    });
+
+    this.dashboardWindow.on('closed', () => {
+      this.dashboardWindow = null;
+    });
   }
 }

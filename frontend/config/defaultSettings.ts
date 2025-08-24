@@ -8,6 +8,7 @@ const Settings: ProLayoutProps & {
   logo?: string;
   apiPath: string;
   devApiUrl: string;
+  prodApiUrl: string;
 } = {
   navTheme: 'light',
   // 拂晓蓝
@@ -27,6 +28,7 @@ const Settings: ProLayoutProps & {
   },
   apiPath: 'api/v1',
   devApiUrl: 'http://localhost:5000',
+  prodApiUrl: 'http://localhost:5000',
 };
 
 export default Settings;

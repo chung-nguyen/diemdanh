@@ -51,8 +51,8 @@ const refreshAccessToken = async () => {
   return null;
 };
 
-export const API_BASE_URL = (isDev ? defaultSettings.devApiUrl : '') + '/' + defaultSettings.apiPath;
-export const PHOTO_BASE_URL = (isDev ? defaultSettings.devApiUrl : '') + '/photo';
+export const API_BASE_URL = (isDev ? defaultSettings.devApiUrl : defaultSettings.prodApiUrl) + '/' + defaultSettings.apiPath;
+export const PHOTO_BASE_URL = (isDev ? defaultSettings.devApiUrl : defaultSettings.prodApiUrl) + '/photo';
 
 /**
  * @name 错误处理
@@ -120,7 +120,7 @@ export const requestConfig: RequestConfig = {
     },
   },
 
-  baseURL: (isDev ? defaultSettings.devApiUrl : '') + '/' + defaultSettings.apiPath,  
+  baseURL: (isDev ? defaultSettings.devApiUrl : defaultSettings.prodApiUrl) + '/' + defaultSettings.apiPath,  
 
   // Request interceptor
   requestInterceptors: [

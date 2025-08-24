@@ -36,6 +36,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let dashboardWindow: BrowserWindow | null = null;
 
 ipcMain.on(IPCEvents.INITIALIZE, async (event) => {
   settingsProvider.appInfo.localIpAddress = getLocalIp();
@@ -139,7 +140,8 @@ const createWindow = async () => {
     },
   });
 
-  mainWindow.loadURL(resolveHtmlPath('index.html'));
+  mainWindow.loadURL(resolveHtmlPath('index.html'));  
+  // mainWindow.loadFile(getAssetPath('dist/index.html'));
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -156,6 +158,7 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
+  // Menu
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
@@ -169,7 +172,7 @@ const createWindow = async () => {
   // eslint-disable-next-line
   new AppUpdater();
 
-  proxyServer.run(settingsProvider.appInfo.localPort, mainWindow);
+  proxyServer.run(settingsProvider.appInfo.localPort, mainWindow);  
 };
 
 /**
