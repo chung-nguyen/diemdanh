@@ -57,24 +57,18 @@ router.get('/generate/:id', async function (req, res, next) {
 
 router.get('/print/:id', async function (req, res, next) {
   const { id } = req.params;
-  const [meeting, attendances] = await Promise.all([
-    Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id })
-      .sort({ seat: 1 })
-      .populate('guestId')
-      .lean(),
-  ]);
+  const guests = await Guest.find({ meetingId: id }).lean();
 
-  await printQRCodesSheet(meeting, attendances);
-
-  res.status(200).json({ success: true });
+  guests.sort((a, b) => a.seat - b.seat);
+  await printQRCodesSheet(res, guests);
 });
 
 router.get('/report/:id', async function (req, res, next) {
   const { id } = req.params;
+  const day = parseInt(req.query.d);
   const [meeting, attendances] = await Promise.all([
     Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id }).populate('guestId').lean(),
+    Attendance.find({ meetingId: id, day }).populate('guestId').lean(),
   ]);
 
   res.status(200).json({ success: true, data: { meeting, attendances } });
@@ -82,10 +76,11 @@ router.get('/report/:id', async function (req, res, next) {
 
 router.get('/reset/:id', async function (req, res, next) {
   const { id } = req.params;
+  const day = parseInt(req.query.d);
 
   const [meeting, attendances] = await Promise.all([
     Meeting.findById(id).lean(),
-    Attendance.find({ meetingId: id }).populate('guestId').lean(),
+    Attendance.find({ meetingId: id, day }).lean(),
   ]);
 
   // Backup first
@@ -109,7 +104,7 @@ router.get('/reset/:id', async function (req, res, next) {
   );
 
   await Attendance.updateMany(
-    { meetingId: id },
+    { meetingId: id, day },
     { status: AttendanceStatus.UNKNOWN }
   );
 
@@ -198,7 +193,7 @@ router.post('/import-addendum/:meeting', async function (req, res) {
       return;
     }
 
-    const meeting = await updateMeetingSheet(meetingId, destFilePath);
+    const meeting = await analyzeMeetingSheet(destFilePath, meetingId);
     if (!meeting) {
       console.error('Could not save meeting');
       res.status(500).json({ success: false });
@@ -211,7 +206,7 @@ router.post('/import-addendum/:meeting', async function (req, res) {
 
 router.post('/import-seatmap/:meeting', async function (req, res) {
   const meetingId = req.params.meeting;
-  const range = req.body.range;
+  const day = parseInt(req.body.day);
 
   let sampleFile;
   let uploadPath;
@@ -231,7 +226,7 @@ router.post('/import-seatmap/:meeting', async function (req, res) {
       return;
     }
 
-    const meeting = await updateSeatMap(meetingId, destFilePath, range);
+    const meeting = await updateSeatMap(meetingId, day, destFilePath);
     if (!meeting) {
       console.error('Could not save meeting');
       res.status(500).json({ success: false });
@@ -242,7 +237,7 @@ router.post('/import-seatmap/:meeting', async function (req, res) {
   });
 });
 
-async function updateSeatMap(meetingId, filePath, range) {
+async function updateSeatMap(meetingId, day, filePath) {
   const workbook = new Excel.Workbook();
   await workbook.xlsx.readFile(filePath);
 
@@ -255,15 +250,11 @@ async function updateSeatMap(meetingId, filePath, range) {
     throw new Error('Meeting not found');
   }
 
-  const [start, end] = range.split(':');
-  const [startCol, startRow] = parseCell(start);
-  const [endCol, endRow] = parseCell(end);
-
   const seats = {};
   const worksheet = workbook.worksheets[0];
-  for (let row = startRow; row <= endRow; ++row) {
+  for (let row = 1; row <= worksheet.actualRowCount; ++row) {
     const sheetRow = worksheet.getRow(row);
-    for (let col = startCol; col <= endCol; ++col) {
+    for (let col = 1; col <= worksheet.actualColumnCount; ++col) {
       const cell = sheetRow.getCell(col);
       if (cell) {
         seats[`${row}:${col}`] = {
@@ -276,106 +267,16 @@ async function updateSeatMap(meetingId, filePath, range) {
 
   const seatMap = new SeatMap({
     meetingId,
-    startRow,
-    startCol,
-    endRow,
-    endCol,
+    day,
     seats,
   });
 
-  const seatData = await seatMap.save();
+  await seatMap.save();
 
-  meeting.seatmapId = seatData._id;
-  await meeting.save();
-
-  return meeting.toObject();
+  return seatMap;
 }
 
-async function updateMeetingSheet(meetingId, filePath) {
-  const workbook = new Excel.Workbook();
-  await workbook.xlsx.readFile(filePath);
-
-  if (!workbook) {
-    throw new Error('Failed to read worksheet');
-  }
-
-  const meeting = await Meeting.findById(meetingId);
-  if (!meeting) {
-    throw new Error('Meeting not found');
-  }
-
-  const worksheet = workbook.worksheets[0];
-
-  const headerColumnIndex = {
-    idNumber: 0,
-    fullName: 0,
-    office: 0,
-    workplace: 0,
-    phoneNumber: 0,
-  };
-
-  let promises = [];
-
-  let meetingName = '';
-  let headerRowScanned = false;
-  worksheet.eachRow(function (row, rowNumber) {
-    if (!headerRowScanned) {
-      row.values.forEach((value, index) => {
-        if (!value) {
-          return;
-        }
-
-        if (!meetingName) {
-          meetingName = value;
-        }
-
-        if (value.toLowerCase().includes('cccd')) {
-          headerRowScanned = true;
-          headerColumnIndex.idNumber = index;
-        } else if (value.toLowerCase().includes('tên')) {
-          headerRowScanned = true;
-          headerColumnIndex.fullName = index;
-        } else if (value.toLowerCase().includes('chức')) {
-          headerRowScanned = true;
-          headerColumnIndex.office = index;
-        } else if (value.toLowerCase().includes('đơn vị')) {
-          headerRowScanned = true;
-          headerColumnIndex.workplace = index;
-        } else if (
-          value.toLowerCase().includes('đt') ||
-          value.toLowerCase().includes('điện thoại')
-        ) {
-          headerRowScanned = true;
-          headerColumnIndex.phoneNumber = index;
-        }
-      });
-    } else {
-      promises.push(addMissingGuestFromExcel(headerColumnIndex, row.values));
-    }
-  });
-
-  const guestIds = await Promise.all(promises);
-
-  await Promise.all(
-    guestIds.map(async (guestId, index) => {
-      let attendance = await Attendance.findOne({ meetingId, guestId });
-      if (!attendance) {
-        const attendance = new Attendance({
-          meetingId,
-          guestId,
-          seat: index + 1,
-          status: AttendanceStatus.UNKNOWN,
-          checkInTime: null,
-        });
-        await attendance.save();
-      }
-    })
-  );
-
-  return meeting.toObject();
-}
-
-async function analyzeMeetingSheet(filePath) {
+async function analyzeMeetingSheet(filePath, meetingId) {
   const workbook = new Excel.Workbook();
   await workbook.xlsx.readFile(filePath);
 
@@ -387,6 +288,7 @@ async function analyzeMeetingSheet(filePath) {
   const worksheet = workbook.worksheets[0];
 
   const headerColumnIndex = {
+    seat: 0,
     idNumber: 0,
     fullName: 0,
     office: 0,
@@ -394,10 +296,9 @@ async function analyzeMeetingSheet(filePath) {
     phoneNumber: 0,
   };
 
-  let promises = [];
-
   let meetingName = '';
   let headerRowScanned = false;
+  let guestData = [];
   worksheet.eachRow(function (row, rowNumber) {
     if (!headerRowScanned) {
       row.values.forEach((value, index) => {
@@ -412,6 +313,9 @@ async function analyzeMeetingSheet(filePath) {
         if (value.toLowerCase().includes('cccd')) {
           headerRowScanned = true;
           headerColumnIndex.idNumber = index;
+        } else if (value.toLowerCase().includes('ghế')) {
+          headerRowScanned = true;
+          headerColumnIndex.seat = index;
         } else if (value.toLowerCase().includes('tên')) {
           headerRowScanned = true;
           headerColumnIndex.fullName = index;
@@ -430,54 +334,58 @@ async function analyzeMeetingSheet(filePath) {
         }
       });
     } else {
-      promises.push(addMissingGuestFromExcel(headerColumnIndex, row.values));
+      guestData.push(row.values);
     }
   });
 
-  const guestIds = await Promise.all(promises);
+  meetingId = meetingId || Meeting.genId(meetingName);
 
-  const meeting = new Meeting({
-    name: meetingName,
-    time: new Date(),
-    duration: 1,
-    description: meetingName,
-  });
+  let meeting = await Meeting.findById(meetingId);
+  if (!meeting) {
+    meeting = new Meeting({
+      name: meetingName,
+      time: new Date(),
+      duration: 1,
+      daysCount: 1,
+      description: meetingName,
+    });
 
-  await meeting.save();
-  const meetingId = meeting._id;
-  if (!meetingId) {
-    return;
+    await meeting.save();
   }
 
+  const lastGuest = await Guest.findOne({ meetingId })
+    .sort({ seat: -1 })
+    .lean();
+  const lastSeatIndex = lastGuest?.seat || 0;
+
   await Promise.all(
-    guestIds.map((guestId, index) => {
-      const attendance = new Attendance({
+    guestData.map((data, index) =>
+      addMissingGuestFromExcel(
+        headerColumnIndex,
         meetingId,
-        guestId,
-        seat: index + 1,
-        status: AttendanceStatus.UNKNOWN,
-        checkInTime: null,
-      });
-      return attendance.save();
-    })
+        data,
+        lastSeatIndex + index
+      )
+    )
   );
 
   return meeting.toObject();
 }
 
-async function addMissingGuestFromExcel(headerColumnIndex, values) {
-  let idNumber = String(values[headerColumnIndex.idNumber]);
-  if (!idNumber) {
-    return;
+async function addMissingGuestFromExcel(
+  headerColumnIndex,
+  meetingId,
+  values,
+  index
+) {
+  let seat = parseInt(values[headerColumnIndex.seat]);
+  if (isNaN(seat)) {
+    seat = index + 1;
   }
 
-  // DO NOT automate this anymore
-  // if (idNumber.length < 12) {
-  //   idNumber = idNumber.padStart(12, '0');
-  // }
-
-  let guest = await Guest.findOne({ idNumber });
+  let guest = await Guest.findOne({ meetingId, seat });
   if (guest) {
+    guest.idNumber = values[headerColumnIndex.idNumber] || guest.idNumber;
     guest.fullName = values[headerColumnIndex.fullName] || guest.fullName;
     guest.office = values[headerColumnIndex.office] || guest.office;
     guest.workplace = values[headerColumnIndex.workplace] || guest.workplace;
@@ -486,7 +394,9 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
     await guest.save();
   } else {
     guest = new Guest({
-      idNumber,
+      meetingId,
+      seat,
+      idNumber: values[headerColumnIndex.idNumber],
       fullName: values[headerColumnIndex.fullName],
       office: values[headerColumnIndex.office],
       workplace: values[headerColumnIndex.workplace],
@@ -498,7 +408,7 @@ async function addMissingGuestFromExcel(headerColumnIndex, values) {
   return guest._id;
 }
 
-async function printQRCodesSheet(meeting, attendances) {
+async function printQRCodesSheet(res, guests) {
   // === SETTINGS ===
   const cmToPt = (cm) => (cm / 2.54) * 72; // convert cm to points
 
@@ -512,11 +422,9 @@ async function printQRCodesSheet(meeting, attendances) {
     margin: 0,
   });
 
-  doc.pipe(
-    fs.createWriteStream(
-      path.join(DEFAULT_SETTINGS.reportPath, meeting.name + '.pdf')
-    )
-  );
+  doc.pipe(res);
+
+  // TODO: check this when integrate into Electron
   doc.registerFont(
     'Roboto-Bold',
     path.join(__dirname, '../data/Roboto-Bold.ttf')
@@ -527,10 +435,9 @@ async function printQRCodesSheet(meeting, attendances) {
   const pageWidth = doc.page.width;
   const pageHeight = doc.page.height;
 
-  for (let i = 0; i < attendances.length; i++) {
-    const attendance = attendances[i];
-    const guest = attendance.guestId;
-    const checkInURL = getQRCodeLink(attendance);
+  for (let i = 0; i < guests.length; i++) {
+    const guest = guests[i];
+    const checkInURL = getQRCodeLink(guest);
 
     // Generate QR code
     const qrData = await QRCode.toBuffer(checkInURL, {
@@ -558,7 +465,7 @@ async function printQRCodesSheet(meeting, attendances) {
     doc
       .font('Roboto-Bold')
       .fontSize(12)
-      .text(`${guest.idNumber}`, x, y + qrSize + cmToPt(1.125), {
+      .text(`${guest.seat}`, x, y + qrSize + cmToPt(1.125), {
         width: frameWidth,
         align: 'center',
       });
@@ -571,7 +478,7 @@ async function printQRCodesSheet(meeting, attendances) {
     }
 
     // If next frame won't fit vertically, start a new page
-    if (y + frameHeight + spacing > pageHeight && i < attendances.length - 1) {
+    if (y + frameHeight + spacing > pageHeight && i < guests.length - 1) {
       doc.addPage();
       x = spacing;
       y = spacing;

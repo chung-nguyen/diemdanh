@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-exports.SeatMap = mongoose.model('SeatMap', {
+const schema = new mongoose.Schema({
   _id: String,
   meetingId: {
     type: String,
@@ -12,17 +12,15 @@ exports.SeatMap = mongoose.model('SeatMap', {
     type: Number,
     require: true
   },
-  seats: Schema.Types.Mixed,
-  startRow: Number,
-  startCol: Number,
-  endRow: Number,
-  endCol: Number,
-});
+  seats: Schema.Types.Mixed,  
+})
 
-exports.SeatMap.schema.pre('save', function (next) {
+schema.pre('save', function (next) {
   this._id = `${this.meetingId}:${this.day}`;
   next();
 });
 
-exports.SeatMap.schema.index({ meetingId: 1, day: 1 }, { unique: true });
-exports.SeatMap.schema.index({ meetingId: 1 });
+schema.index({ meetingId: 1, day: 1 }, { unique: true });
+schema.index({ meetingId: 1 });
+
+exports.SeatMap = mongoose.model('SeatMap', schema);

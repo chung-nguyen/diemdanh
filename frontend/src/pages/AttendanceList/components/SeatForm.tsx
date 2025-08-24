@@ -13,13 +13,12 @@ export type SeatFormProps = {
   onCancel: () => void;
   visible: boolean;
   meetingId: string;
+  day: string;
 };
 
-const SeatForm: React.FC<SeatFormProps> = ({ meetingId, onCancel, visible }) => {
+const SeatForm: React.FC<SeatFormProps> = ({ meetingId, day, onCancel, visible }) => {
   const intl = useIntl();
   const accessToken = getAccessToken();
-
-  const [range, setRange] = useState('C10:Q24');
 
   const props: UploadProps = {
     name: 'file',
@@ -29,7 +28,7 @@ const SeatForm: React.FC<SeatFormProps> = ({ meetingId, onCancel, visible }) => 
       Authorization: `Bearer ${accessToken}`,
     },
     data: {
-      range: range
+      day,
     },
     onChange(info) {
       const { status } = info.file;
@@ -56,10 +55,7 @@ const SeatForm: React.FC<SeatFormProps> = ({ meetingId, onCancel, visible }) => 
           </p>
           <p className="ant-upload-text">Click hoặc kéo file vào đây để nhập</p>
           <p className="ant-upload-hint">Cập nhật sơ đồ phòng họp bằng cách nhập file Excel.</p>
-        </Dragger>
-        <Form.Item label="Chọn ô Excel" style={{ width: '100%' }}>
-          <Input placeholder='Ví dụ: C10:Q24' value={range} onChange={(e) => setRange(e.target.value)} />
-        </Form.Item>
+        </Dragger>        
       </Space>
     </Modal>
   );

@@ -3,6 +3,7 @@
 import { request } from '@umijs/max';
 import { SortOrder } from 'antd/es/table/numbererface';
 import { AttendanceType } from './attendance';
+import { API_BASE_URL } from '@/request-config';
 
 export type MeetingType = {
   _id: string;
@@ -62,11 +63,11 @@ export async function getMeeting(id: string) {
 }
 
 /** Get a single meeting GET /meetings/report/:id */
-export async function getMeetingReport(id: string) {
+export async function getMeetingReport(id: string, day: string) {
   const response = await request<{
     data: { meeting: MeetingType; attendances: AttendanceType[] };
     success?: boolean;
-  }>(`/meeting/report/${id}`, {
+  }>(`/meeting/report/${id}?d=${day}`, {
     method: 'GET',
     params: {},
   });
@@ -116,25 +117,31 @@ export async function generateInviteSheet(id: string) {
   return response.data;
 }
 
-export async function printQRSheet(id: string) {
-  const response = await request<{
-    data: { meeting: MeetingType; attendances: AttendanceType[] };
-    success?: boolean;
-  }>(`/meeting/print/${id}`, {
-    method: 'GET',
-    params: {},
+export async function printQRSheet(id: string, fileName: string, accessToken: string) {
+  const response = await fetch(`${API_BASE_URL}/meeting/print/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
 
-  return response.data;
+  // Create a temporary <a> element
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+
+  // Cleanup
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }
 
-export async function resetMeeting(id: string) {
+export async function resetMeeting(id: string, day: string) {
   const response = await request<{
     data: { meeting: MeetingType; attendances: AttendanceType[] };
     success?: boolean;
-  }>(`/meeting/reset/${id}`, {
-    method: 'GET',
-    params: {},
+  }>(`/meeting/reset/${id}?d=${day}`, {
+    method: 'GET'
   });
 
   return response.data;

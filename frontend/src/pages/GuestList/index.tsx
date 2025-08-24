@@ -6,6 +6,7 @@ import {
   HomeOutlined,
   PlusOutlined,
   PrinterOutlined,
+  QrcodeOutlined,
   SaveOutlined,
   UpCircleOutlined,
   UserOutlined,
@@ -38,6 +39,7 @@ import UpdateForm from './components/UpdateForm';
 import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
 import CopyableQRCode from '@/components/QRCode';
 import ImportForm from './components/ImportForm';
+import { getAccessToken } from '@/services/ant-design-pro/login';
 
 /**
  * Add node
@@ -110,42 +112,20 @@ const handleRemove = async (selectedRows: GuestType[]) => {
   }
 };
 
-const handlePrintQRSheet = async (id: string) => {
+const handlePrintQRSheet = async (id: string, fileName: string, accessToken: string) => {
   const hide = message.loading('Đang xử lý');
 
   try {
-    await printQRSheet(id);
+    await printQRSheet(id, fileName, accessToken);
     hide();
     message.success('Đã xử lý thành công');
     return true;
   } catch (error: any) {
     hide();
+    console.error(error);
     message.error('Vui lòng thử lại!');
     return false;
   }
-};
-
-const handleResetMeeting = async (id: string) => {
-  Modal.confirm({
-    title: 'Xác nhận',
-    content: 'Chắc chắn reset lại?',
-    okText: 'Có',
-    cancelText: 'Không',
-    async onOk() {
-      const hide = message.loading('Đang xử lý');
-
-      try {
-        await resetMeeting(id);
-        hide();
-        message.success('Đã xử lý thành công');
-        return true;
-      } catch (error: any) {
-        hide();
-        message.error('Vui lòng thử lại!');
-        return false;
-      }
-    },
-  });
 };
 
 const GuestList: React.FC = () => {
@@ -165,6 +145,7 @@ const GuestList: React.FC = () => {
 
   const urlParams = new URLSearchParams(history.location.search);
   const meetingId = String(urlParams.get('id'));
+  const accessToken = getAccessToken();
 
   const { data: meeting, isLoading } = useQuery(
     ['attendance-list', meetingId],
@@ -289,68 +270,13 @@ const GuestList: React.FC = () => {
             <PlusOutlined /> Tạo mới
           </Button>,
 
-          <Button type="default" key="default" onClick={() => {}}>
-            <SaveOutlined /> Xuất file
+          <Button type="default" key="default" onClick={() => handleImportModalVisible(true)}>
+            <FileExcelOutlined /> Bổ sung từ Excel
           </Button>,
 
-          <Button
-            type="default"
-            key="default"
-            onClick={() => {
-              history.push(`/meeting/report?id=${meetingId}`);
-            }}
-          >
-            <BookOutlined /> Báo cáo
-          </Button>,
-
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  label: 'Cập nhật sơ đồ',
-                  key: 'updateSeat',
-                  icon: <HomeOutlined />,
-                },
-                {
-                  label: 'Bổ sung từ Excel',
-                  key: 'importExcel',
-                  icon: <FileExcelOutlined />,
-                },
-                {
-                  label: 'In QR',
-                  key: 'printQR',
-                  icon: <PrinterOutlined />,
-                },
-                {
-                  label: 'Reset',
-                  key: 'reset',
-                  icon: <UpCircleOutlined />,
-                },
-              ],
-              onClick: (menuInfo) => {
-                switch (menuInfo.key) {
-                  case 'printQR':
-                    handlePrintQRSheet(meetingId);
-                    break;
-
-                  case 'importExcel':
-                    handleImportModalVisible(true);
-                    break;
-
-                  case 'reset':
-                    handleResetMeeting(meetingId);
-                    break;
-                }
-              },
-            }}
-          >
-            <Button>
-              <Space>
-                Chức năng
-                <DownOutlined />
-              </Space>
-            </Button>
-          </Dropdown>,
+          <Button type="default" key="default" onClick={() => handlePrintQRSheet(meetingId, 'QR - ' + String(meeting?.data.name) + '.pdf', accessToken)}>
+            <QrcodeOutlined /> In QR
+          </Button>
         ]}
         request={guests(meetingId)}
         columns={columns}
@@ -442,6 +368,7 @@ const GuestList: React.FC = () => {
         onCancel={() => {
           handleImportModalVisible(false);
         }}
+        onDone={() => actionRef.current?.reloadAndRest?.()}
         visible={importModalVisible}
       />
     </PageContainer>

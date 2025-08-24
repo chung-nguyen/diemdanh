@@ -10,10 +10,11 @@ import { getAccessToken } from '@/services/ant-design-pro/login';
 
 export type ImportFormProps = {
   onCancel: () => void;
+  onDone: () => void;
   visible: boolean;
 };
 
-const ImportForm: React.FC<ImportFormProps> = ({ onCancel, visible }) => {
+const ImportForm: React.FC<ImportFormProps> = ({ onCancel, onDone, visible }) => {
   const intl = useIntl();
   const accessToken = getAccessToken();
 
@@ -31,6 +32,7 @@ const ImportForm: React.FC<ImportFormProps> = ({ onCancel, visible }) => {
       }
       if (status === 'done') {
         message.success(`${info.file.name} nhập thành công.`);
+        onDone();
       } else if (status === 'error') {
         message.error(`${info.file.name} nhập thất bại.`);
       }

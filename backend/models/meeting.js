@@ -9,7 +9,12 @@ const schema = new mongoose.Schema({
   duration: Number,
   description: String,
   daysCount: Number
-})
+});
+
+schema.statics.genId = function (name) {
+  const slug = stringToSlug(name);
+  return deterministicHash(slug, 12);
+};
 
 schema.pre('save', function (next) {
   const slug = stringToSlug(this.name);
@@ -19,4 +24,3 @@ schema.pre('save', function (next) {
 });
 
 exports.Meeting = mongoose.model('Meeting', schema);
-

@@ -29,10 +29,11 @@ const MeetingReport: React.FC = () => {
 
   const urlParams = new URLSearchParams(history.location.search);
   const meetingId = String(urlParams.get('id'));
+  const day = String(urlParams.get('d'));
 
   const { data, isLoading } = useQuery(
     ['meeting-report', meetingId],
-    () => getMeetingReport(meetingId),
+    () => getMeetingReport(meetingId, day),
     {
       enabled: !!meetingId,
     },

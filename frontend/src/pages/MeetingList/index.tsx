@@ -302,6 +302,7 @@ const MeetingList: React.FC = () => {
         onCancel={() => {
           handleImportModalVisible(false);
         }}
+        onDone={() => actionRef.current?.reloadAndRest?.()}
         visible={importModalVisible}
       />
     </PageContainer>

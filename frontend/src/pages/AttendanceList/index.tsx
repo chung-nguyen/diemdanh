@@ -3,7 +3,9 @@ import {
   CiCircleOutlined,
   DownOutlined,
   FileExcelOutlined,
+  HeatMapOutlined,
   HomeOutlined,
+  InsertRowAboveOutlined,
   PlusOutlined,
   PrinterOutlined,
   SaveOutlined,
@@ -12,7 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { history, useIntl, useQuery } from '@umijs/max';
+import { history, Link, useIntl, useQuery } from '@umijs/max';
 import { Avatar, Button, Dropdown, message, Modal, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -127,37 +129,7 @@ const handleGenerateInviteSHeet = async (id: string) => {
   }
 };
 
-const handleImportExcel = async (id: string) => {
-  const hide = message.loading('Đang xử lý');
-
-  try {
-    await printQRSheet(id);
-    hide();
-    message.success('Đã xử lý thành công');
-    return true;
-  } catch (error: any) {
-    hide();
-    message.error('Vui lòng thử lại!');
-    return false;
-  }
-};
-
-const handlePrintQRSheet = async (id: string) => {
-  const hide = message.loading('Đang xử lý');
-
-  try {
-    await printQRSheet(id);
-    hide();
-    message.success('Đã xử lý thành công');
-    return true;
-  } catch (error: any) {
-    hide();
-    message.error('Vui lòng thử lại!');
-    return false;
-  }
-};
-
-const handleResetMeeting = async (id: string) => {
+const handleResetMeeting = async (id: string, day: string, cb: Function) => {
   Modal.confirm({
     title: 'Xác nhận',
     content: 'Chắc chắn reset lại?',
@@ -167,9 +139,10 @@ const handleResetMeeting = async (id: string) => {
       const hide = message.loading('Đang xử lý');
 
       try {
-        await resetMeeting(id);
+        await resetMeeting(id, day);
         hide();
         message.success('Đã xử lý thành công');
+        cb();
         return true;
       } catch (error: any) {
         hide();
@@ -347,60 +320,25 @@ const AttendanceList: React.FC = () => {
             <PlusOutlined /> Tạo mới
           </Button>,
 
-          <Button type="default" key="default" onClick={() => handleGenerateInviteSHeet(meetingId)}>
-            <SaveOutlined /> Xuất file
-          </Button>,
-
-          <Button
-            type="default"
-            key="default"
-            onClick={() => {
-              history.push(`/meeting/report?id=${meetingId}`);
-            }}
-          >
-            <BookOutlined /> Báo cáo
-          </Button>,
+          <Button type="default" key="default" onClick={() => handleSeatModalVisible(true)}>
+            <InsertRowAboveOutlined /> Cập nhật sơ đồ
+          </Button>,          
 
           <Dropdown
             menu={{
               items: [
-                {
-                  label: 'Cập nhật sơ đồ',
-                  key: 'updateSeat',
-                  icon: <HomeOutlined />,
-                },
-                {
-                  label: 'Bổ sung từ Excel',
-                  key: 'importExcel',
-                  icon: <FileExcelOutlined />,
-                },
-                {
-                  label: 'In QR',
-                  key: 'printQR',
-                  icon: <PrinterOutlined />,
-                },
                 {
                   label: 'Reset',
                   key: 'reset',
                   icon: <UpCircleOutlined />,
                 },
               ],
-              onClick: (menuInfo) => {
+              onClick: async (menuInfo) => {
                 switch (menuInfo.key) {
-                  case 'printQR':
-                    handlePrintQRSheet(meetingId);
-                    break;
-
-                  case 'importExcel':
-                    handleImportModalVisible(true);
-                    break;
-
-                  case 'updateSeat':
-                    handleSeatModalVisible(true);
-                    break;
-
                   case 'reset':
-                    handleResetMeeting(meetingId);
+                    await handleResetMeeting(meetingId, day, () =>
+                      actionRef.current?.reloadAndRest?.(),
+                    );
                     break;
                 }
               },
@@ -413,6 +351,10 @@ const AttendanceList: React.FC = () => {
               </Space>
             </Button>
           </Dropdown>,
+
+          <Link type="default" className="button button-primary" key="default" to={`/meeting/report?id=${meetingId}&d=${day}`}>
+            <BookOutlined /> Báo cáo
+          </Link>,
         ]}
         request={attendances(meetingId, day)}
         columns={columns}
@@ -512,6 +454,7 @@ const AttendanceList: React.FC = () => {
 
       <SeatForm
         meetingId={meetingId}
+        day={day}
         onCancel={() => {
           handleSeatModalVisible(false);
         }}
