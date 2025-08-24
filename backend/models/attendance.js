@@ -5,19 +5,24 @@ exports.AttendanceStatus = {
   CHECKED_IN: 1,
 };
 
-exports.Attendance = mongoose.model('Attendance', {
-  meetingId: {
-    type: mongoose.Types.ObjectId,
-    ref: 'Meeting'
-  },
-  guestId: {
-    type: mongoose.Types.ObjectId,
-    ref: 'Guest'
-  },
-  seat: Number,
+const schema = new mongoose.Schema({
+  _id: String,
+  meetingId: { type: String, require: true, ref: 'Meeting' },
+  seat: { type: Number, require: true },
+  day: { type: Number, require: true },  
+  guestId: { type: String, require: true, ref: 'Guest' },
   status: Number,
   checkInTime: Date,
 });
 
-exports.Attendance.schema.index({ meetingId: 1, guestId: 1 }, { unique: true });
-exports.Attendance.schema.index({ meetingId: 1 });
+schema.pre('save', function (next) {
+  this._id = `${this.meetingId}:${this.seat}:${this.day}`;
+  this.guestId = `${this.meetingId}:${this.seat}`;
+  next();
+});
+
+schema.index({ meetingId: 1, guestId: 1, day: 1 }, { unique: true });
+schema.index({ meetingId: 1, day: 1 });
+
+exports.Attendance = mongoose.model('Attendance', schema);
+

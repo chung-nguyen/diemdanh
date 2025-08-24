@@ -8,6 +8,7 @@ export type MeetingType = {
   _id: string;
   name: string;
   time: Date;
+  daysCount: number;
   duration: number;
   createdAt?: Date;
   updatedAt?: Date;

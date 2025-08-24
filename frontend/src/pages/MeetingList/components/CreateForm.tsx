@@ -49,6 +49,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
         label="Thời điểm"
       />
       <ProFormText colProps={{ span: 24 }} name="duration" label="Thời hạn (giờ)" />
+      <ProFormText colProps={{ span: 24 }} name="daysCount" label="Số ngày" />      
       <ProFormTextArea
         colProps={{ span: 24 }}
         fieldProps={{ rows: 10 }}

@@ -7,6 +7,8 @@ var router = express.Router();
 router.get('/', async function (req, res, next) {
   let { current, pageSize, sort, direction, join, ...filter } = req.query;
 
+  console.log(filter)
+
   current = Math.max(0, parseInt(String(current)) - 1);
   pageSize = parseInt(String(pageSize));
   let findCursor = Attendance.find(filter)
@@ -36,22 +38,19 @@ router.delete('/', async function (req, res, next) {
 });
 
 router.post('/', async function (req, res, next) {
-  let guestIdNumber = req.body.guestIdNumber;
-  let guestId;
-
-  if (guestIdNumber) {
-    const guest = await Guest.findOne({ idNumber: guestIdNumber });
-    guestId = guest._id;
-  }
-
-  if (!guestId) {
+  const meetingId = req.body.meetingId;
+  const seat = req.body.seat;
+  const day = req.body.day;
+    
+  const guest = await Guest.findOne({ meetingId, seat });
+  if (!guest) {
     throw new Error('Guest not found!');
   }
 
   const doc = new Attendance({
     meetingId: req.body.meetingId,
-    guestId,
-    seat: 0,
+    seat,
+    day,
     status: AttendanceStatus.UNKNOWN,
     checkInTime: null,
   });

@@ -1,12 +1,22 @@
 const mongoose = require('mongoose');
+const { deterministicHash, stringToSlug } = require('../utils/hash-utils');
 
-exports.Meeting = mongoose.model('Meeting', {
+const schema = new mongoose.Schema({
+  _id: String,
   name: String,
+  slug: String,
   time: Date,
   duration: Number,
   description: String,
-  seatmapId: {
-    type: mongoose.Types.ObjectId,
-    ref: 'SeatMap'
-  }
+  daysCount: Number
+})
+
+schema.pre('save', function (next) {
+  const slug = stringToSlug(this.name);
+  this._id = deterministicHash(slug, 12);
+  this.slug = slug;
+  next();
 });
+
+exports.Meeting = mongoose.model('Meeting', schema);
+

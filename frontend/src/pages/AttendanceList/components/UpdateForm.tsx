@@ -16,6 +16,7 @@ import { Avatar, Flex, Form, Input, Space } from 'antd';
 
 export type ViewFormProps = {
   meeting: MeetingType | undefined;
+  day: string;
   onSubmit: (values: AttendanceType) => Promise<void>;
   onCancel: () => void;
   viewModalVisible: boolean;
@@ -23,6 +24,7 @@ export type ViewFormProps = {
 };
 
 const UpdateForm: React.FC<ViewFormProps> = ({
+  day,
   meeting,
   onSubmit,
   onCancel,
@@ -51,6 +53,9 @@ const UpdateForm: React.FC<ViewFormProps> = ({
       <Form.Item label="Hội nghị" style={{ width: '100%' }}>
         <Input readOnly value={meeting?.name} />
       </Form.Item>
+      <Form.Item label="Ngày" style={{ width: '100%' }}>
+        <Input readOnly value={day} />
+      </Form.Item>
       <ProFormText colProps={{ span: 24 }} name="seat" label="Số ghế" />
       <ProFormText name={["guestId", "fullName"]} label="Tên khách mời" />      
       <Space direction="horizontal" size="middle">
@@ -68,11 +73,6 @@ const UpdateForm: React.FC<ViewFormProps> = ({
       </Form.Item>
 
       <Flex justify="center" gap={32}>
-        <Avatar
-          size={256}
-          src={getPhotoURL((values?.guestId as any)?.idNumber + '.jpg')}
-          icon={<UserOutlined />}
-        />
         {!!checkInLink && (
           <CopyableQRCode
             size={256}

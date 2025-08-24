@@ -1,11 +1,22 @@
+import {
+  BookOutlined,
+  CiCircleOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  HomeOutlined,
+  PlusOutlined,
+  PrinterOutlined,
+  SaveOutlined,
+  UpCircleOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, history } from '@umijs/max';
-import { Avatar, Button, message, Popconfirm, Space, Typography } from 'antd';
+import { history, useIntl, useQuery } from '@umijs/max';
+import { Avatar, Button, Dropdown, message, Modal, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
-import { useServiceProviders } from '@/services/ant-design-pro/api';
 import {
   addGuest,
   guests,
@@ -13,12 +24,20 @@ import {
   updateGuest,
   type GuestType,
 } from '@/services/ant-design-pro/guest';
+import {
+  generateInviteSheet,
+  getCheckInURL,
+  getMeeting,
+  printQRSheet,
+  resetMeeting,
+} from '@/services/ant-design-pro/meeting';
 import { tableColumnState } from '@/services/utils/antd-utils';
 
-import { PlusOutlined, UserOutlined } from '@ant-design/icons';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
-import { getPhotoURL } from '@/services/utils/common-utils';
+import { buildCheckInURL, getPhotoURL } from '@/services/utils/common-utils';
+import CopyableQRCode from '@/components/QRCode';
+import ImportForm from './components/ImportForm';
 
 /**
  * Add node
@@ -33,9 +52,14 @@ const handleAdd = async (fields: GuestType) => {
     hide();
     message.success('Đã thêm thành công');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     hide();
-    message.error('Vui lòng thử lại!');
+
+    if (error.response?.data?.message && error.response.data.message.startsWith('E11000')) {
+      message.error('Khách mời đã có trong danh sách! Vui lòng chọn khách mời khác.');
+    } else {
+      message.error('Vui lòng thử lại!');
+    }
     return false;
   }
 };
@@ -86,9 +110,48 @@ const handleRemove = async (selectedRows: GuestType[]) => {
   }
 };
 
+const handlePrintQRSheet = async (id: string) => {
+  const hide = message.loading('Đang xử lý');
+
+  try {
+    await printQRSheet(id);
+    hide();
+    message.success('Đã xử lý thành công');
+    return true;
+  } catch (error: any) {
+    hide();
+    message.error('Vui lòng thử lại!');
+    return false;
+  }
+};
+
+const handleResetMeeting = async (id: string) => {
+  Modal.confirm({
+    title: 'Xác nhận',
+    content: 'Chắc chắn reset lại?',
+    okText: 'Có',
+    cancelText: 'Không',
+    async onOk() {
+      const hide = message.loading('Đang xử lý');
+
+      try {
+        await resetMeeting(id);
+        hide();
+        message.success('Đã xử lý thành công');
+        return true;
+      } catch (error: any) {
+        hide();
+        message.error('Vui lòng thử lại!');
+        return false;
+      }
+    },
+  });
+};
+
 const GuestList: React.FC = () => {
   const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [importModalVisible, handleImportModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<GuestType>();
@@ -98,106 +161,117 @@ const GuestList: React.FC = () => {
     height: { show: false },
     alt: { show: false },
   });
-  const intl = useIntl();
-  const { getMediaUrl } = useServiceProviders();
+  const { data: checkInURL } = useQuery(['check-in-url'], () => getCheckInURL());
+
+  const urlParams = new URLSearchParams(history.location.search);
+  const meetingId = String(urlParams.get('id'));
+
+  const { data: meeting, isLoading } = useQuery(
+    ['attendance-list', meetingId],
+    () => getMeeting(meetingId),
+    {
+      enabled: !!meetingId,
+    },
+  );
 
   const columns: ProColumns<GuestType>[] = [
     {
-      title: 'Số CCCD',
-      dataIndex: 'idNumber',
+      title: 'Ghế',
+      dataIndex: 'seat',
+      sorter: true,
+    },
+    {
+      title: 'Tên khách mời',
+      dataIndex: 'guestId',
       sorter: true,
       render: (dom, entity) => (
         <Space>
-          <Avatar src={getPhotoURL(entity.idNumber + '.jpg')} icon={<UserOutlined />} />
+          <Avatar
+            src={getPhotoURL((entity._id as any)?.idNumber + '.jpg')}
+            icon={<UserOutlined />}
+          />
           <a
             onClick={() => {
               handleUpdateModalVisible(true);
               setCurrentRow(entity);
             }}
           >
-            {dom}
+            {entity?.fullName}
           </a>
         </Space>
       ),
     },
     {
-      title: 'Điện thoại',
-      dataIndex: 'phoneNumber',
-      sorter: true
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      sorter: true
-    },
-    {
-      title: 'Tên',
-      dataIndex: 'fullName',
-      sorter: true,
-    },
-    {
       title: 'Chức vụ',
-      dataIndex: 'office',
+      dataIndex: 'guestId',
       sorter: true,
+      render: (dom, entity) => entity?.office,
     },
     {
       title: 'Đơn vị',
-      dataIndex: 'workplace',
+      dataIndex: 'guestId',
       sorter: true,
+      render: (dom, entity) => entity?.workplace,
     },
     {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      render: (dom, entity) => <Space>{dayjs(entity.createdAt).format('DD MMM YYYY HH:mm')}</Space>,
-      hideInTable: true,
-      hideInSearch: true,
+      title: 'Số điện thoại',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => entity?.phoneNumber,
     },
     {
-      title: 'Updated At',
-      dataIndex: 'updatedAt',
-      render: (dom, entity) => <Space>{dayjs(entity.updatedAt).format('DD MMM YYYY HH:mm')}</Space>,
-      hideInTable: true,
-      hideInSearch: true,
+      title: 'Email',
+      dataIndex: 'guestId',
+      sorter: true,
+      render: (dom, entity) => entity?.email,
     },
     {
-      title: 'Thao tác',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="edit"
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(record);
-          }}
-        >
-          Sửa
-        </a>,
-        <Popconfirm
-          key="delete"
-          title="Chắc chắn?"
-          onConfirm={async () => {
-            await handleRemove([record]);
-            setSelectedRows([]);
-            actionRef.current?.reloadAndRest?.();
-          }}
-        >
-          <a>Xóa</a>
-        </Popconfirm>,
-      ],
+      title: 'QR Code',
+      dataIndex: 'guestId',
+      sorter: false,
+      render: (dom, entity) => {
+        const link = '';
+        return (
+          <CopyableQRCode
+            size={256}
+            height={64}
+            style={{ height: 'auto', maxWidth: '50%', width: '50%' }}
+            value={link}
+            viewBox={`0 0 256 256`}
+          >
+            {' '}
+          </CopyableQRCode>
+        );
+      },
     },
+    // {
+    //   title: 'Thao tác',
+    //   dataIndex: 'option',
+    //   valueType: 'option',
+    //   render: (_, record) => [
+    //     <Popconfirm
+    //       key="delete"
+    //       title="Chắc chắn?"
+    //       onConfirm={async () => {
+    //         await handleRemove([record]);
+    //         setSelectedRows([]);
+    //         actionRef.current?.reloadAndRest?.();
+    //       }}
+    //     >
+    //       <a>Xóa</a>
+    //     </Popconfirm>,
+    //   ],
+    // },
   ];
 
   return (
-    <PageContainer>
+    <PageContainer loading={isLoading}>
       <ProTable<GuestType, TableListPagination>
-        columnsState={tableColumnState('guest', columnsStateMap, setColumnsStateMap)}
-        headerTitle="Danh sách"
+        columnsState={tableColumnState('attendance', columnsStateMap, setColumnsStateMap)}
+        headerTitle={`Danh sách Khách mời của ${meeting?.data.name}`}
         actionRef={actionRef}
         rowKey="_id"
-        search={{
-          labelWidth: 120,
-        }}
+        search={false}
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
@@ -214,8 +288,71 @@ const GuestList: React.FC = () => {
           >
             <PlusOutlined /> Tạo mới
           </Button>,
+
+          <Button type="default" key="default" onClick={() => {}}>
+            <SaveOutlined /> Xuất file
+          </Button>,
+
+          <Button
+            type="default"
+            key="default"
+            onClick={() => {
+              history.push(`/meeting/report?id=${meetingId}`);
+            }}
+          >
+            <BookOutlined /> Báo cáo
+          </Button>,
+
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  label: 'Cập nhật sơ đồ',
+                  key: 'updateSeat',
+                  icon: <HomeOutlined />,
+                },
+                {
+                  label: 'Bổ sung từ Excel',
+                  key: 'importExcel',
+                  icon: <FileExcelOutlined />,
+                },
+                {
+                  label: 'In QR',
+                  key: 'printQR',
+                  icon: <PrinterOutlined />,
+                },
+                {
+                  label: 'Reset',
+                  key: 'reset',
+                  icon: <UpCircleOutlined />,
+                },
+              ],
+              onClick: (menuInfo) => {
+                switch (menuInfo.key) {
+                  case 'printQR':
+                    handlePrintQRSheet(meetingId);
+                    break;
+
+                  case 'importExcel':
+                    handleImportModalVisible(true);
+                    break;
+
+                  case 'reset':
+                    handleResetMeeting(meetingId);
+                    break;
+                }
+              },
+            }}
+          >
+            <Button>
+              <Space>
+                Chức năng
+                <DownOutlined />
+              </Space>
+            </Button>
+          </Dropdown>,
         ]}
-        request={guests}
+        request={guests(meetingId)}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -254,8 +391,13 @@ const GuestList: React.FC = () => {
       )}
 
       <CreateForm
+        meeting={meeting?.data}
         createModalVisible={createModalVisible}
         onSubmit={async (value: GuestType) => {
+          if (!meeting?.data._id) {
+            return;
+          }
+          value.meetingId = meeting?.data._id;
           const success = await handleAdd(value);
           if (success) {
             handleCreateModalVisible(false);
@@ -272,6 +414,7 @@ const GuestList: React.FC = () => {
       />
 
       <UpdateForm
+        meeting={meeting?.data}
         onSubmit={async (value) => {
           const success = await handleUpdate(value, currentRow);
 
@@ -292,6 +435,14 @@ const GuestList: React.FC = () => {
         }}
         updateModalVisible={updateModalVisible}
         values={currentRow || {}}
+      />
+
+      <ImportForm
+        meetingId={meetingId}
+        onCancel={() => {
+          handleImportModalVisible(false);
+        }}
+        visible={importModalVisible}
       />
     </PageContainer>
   );

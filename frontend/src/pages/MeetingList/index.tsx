@@ -1,6 +1,6 @@
 import type { ActionType, ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, history } from '@umijs/max';
+import { useIntl, history, Link } from '@umijs/max';
 import { Button, message, Popconfirm, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -110,7 +110,7 @@ const MeetingList: React.FC = () => {
       render: (dom, entity) => (
         <a
           onClick={() => {
-            history.push(`/meeting/attendance?id=${entity._id}`);
+            history.push(`/meeting/guest?id=${entity._id}`);
           }}
         >
           {dom}
@@ -135,6 +135,23 @@ const MeetingList: React.FC = () => {
       dataIndex: 'updatedAt',
       render: (dom, entity) => <Space>{dayjs(entity.updatedAt).format('DD MMM YYYY HH:mm')}</Space>,
       hideInTable: true,
+      hideInSearch: true,
+    },
+    {
+      title: 'Điểm danh',
+      dataIndex: 'updatedAt',
+      render: (dom, entity) => (
+        <Space>
+          {new Array(entity.daysCount || 0).fill(true).map((_, index) => (
+            <Link
+              key={index}
+              to={`/meeting/attendance?id=${entity._id}&d=${index + 1}`}
+            >
+              Ngày {index + 1}
+            </Link>
+          ))}
+        </Space>
+      ),
       hideInSearch: true,
     },
     {

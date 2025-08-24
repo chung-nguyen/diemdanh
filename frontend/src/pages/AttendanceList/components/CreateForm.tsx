@@ -10,6 +10,7 @@ import { Form, Input } from 'antd';
 
 type CreateFormProps = {
   meeting: MeetingType | undefined;
+  day: string;
   createModalVisible: boolean;
   children?: React.ReactNode;
   onSubmit: (values: AttendanceType) => Promise<void>;
@@ -17,7 +18,7 @@ type CreateFormProps = {
 };
 
 const CreateForm: React.FC<CreateFormProps> = (props) => {
-  const { meeting, createModalVisible, onSubmit, onCancel } = props;
+  const { meeting, day, createModalVisible, onSubmit, onCancel } = props;
 
   const intl = useIntl();
 
@@ -42,16 +43,10 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
       <Form.Item label="Hội nghị" style={{ width: '100%' }}>
         <Input readOnly value={meeting?.name} />
       </Form.Item>
-      <ProFormAutocomplete
-        colProps={{ span: 24 }}
-        name="guestIdNumber"
-        label="Khách mời"
-        queryKey="autocomplete-guests"
-        fetchSuggestions={async (query: string) => {
-          const data = await search(query, 10);
-          return data?.map((it) => ({ value: it.idNumber, label: it.idNumber }));
-        }}
-      />
+      <Form.Item label="Ngày" style={{ width: '100%' }}>
+        <Input readOnly value={day} />
+      </Form.Item>
+      <ProFormText colProps={{ span: 24 }} name="seat" label="Số ghế" />
     </DrawerForm>
   );
 };

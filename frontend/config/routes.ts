@@ -29,6 +29,13 @@ export default [
     component: './MeetingList',
   },
   {
+    name: 'Khách mời',
+    icon: 'users',
+    path: '/meeting/guest',
+    component: './GuestList',
+    hideInMenu: true
+  },
+  {
     name: 'Điểm danh',
     icon: 'table',
     path: '/meeting/attendance',
@@ -41,12 +48,6 @@ export default [
     path: '/meeting/report',
     component: './MeetingReport',
     hideInMenu: true
-  },
-  {
-    name: 'Khách mời',
-    icon: 'table',
-    path: '/guest',
-    component: './GuestList',
   },
   {
     path: '/',

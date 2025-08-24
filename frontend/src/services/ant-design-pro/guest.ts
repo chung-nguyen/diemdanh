@@ -5,48 +5,53 @@ import { SortOrder } from 'antd/es/table/numbererface';
 
 export type GuestType = {
   _id: string;
-  idNumber: string;
-  phoneNumber: string;
-  email: string;
-  fullName: string;
-  office: string;
-  workplace: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  meetingId: string,
+  seat: Number,
+  idNumber: string,
+  phoneNumber: string,
+  email: string,
+  fullName: string,
+  office: string,
+  workplace: string,
 };
 
 /** Get a list of guests GET /guests */
-export async function guests(
-  params: {
-    pageSize?: number;
-    current?: number;
-    keyword?: string;
-  },
-  sort: Record<string, SortOrder>,
-  filter: Record<string, (string | number)[] | null>,
-) {
-  const queryParams: any = {
-    ...params,
-    ...filter,
-  };
+export function guests(meetingId: string) {
+  return async (
+    params: {
+      pageSize?: number;
+      current?: number;
+      keyword?: string;
+    },
+    sort: Record<string, SortOrder>,
+    filter: Record<string, (string | number)[] | string | null>,
+  ) => {
+    filter = filter || {};
+    filter.meetingId = meetingId;
 
-  if (sort) {
-    const sortEntry = Object.entries(sort)[0];
-    if (sortEntry) {
-      queryParams.sort = sortEntry[0];
-      queryParams.direction = sortEntry[1];
+    const queryParams: any = {
+      ...params,
+      ...filter,
+    };
+
+    if (sort) {
+      const sortEntry = Object.entries(sort)[0];
+      if (sortEntry) {
+        queryParams.sort = sortEntry[0];
+        queryParams.direction = sortEntry[1];
+      }
     }
-  }
 
-  return request<{
-    data: GuestType[];
-    /** The total number of items in the list */
-    total?: number;
-    success?: boolean;
-  }>('/guest', {
-    method: 'GET',
-    params: queryParams,
-  });
+    return request<{
+      data: GuestType[];
+      /** The total number of items in the list */
+      total?: number;
+      success?: boolean;
+    }>('/guest', {
+      method: 'GET',
+      params: queryParams,
+    });
+  };
 }
 
 /** Get a single guest GET /guests/:id */

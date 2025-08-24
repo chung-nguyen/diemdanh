@@ -2,6 +2,7 @@
 /* eslnumber-disable */
 import { request } from '@umijs/max';
 import { SortOrder } from 'antd/es/table/numbererface';
+import { GuestType } from './guest';
 
 export enum AttendanceStatus {
   UNKNOWN = 0,
@@ -22,15 +23,15 @@ export const AttedanceStatusOptions = [
 export type AttendanceType = {
   _id: string;
   meetingId: string;
-  guestId: string;
+  seat: number;
+  day: number;
+  guestId: string | GuestType;
   status: AttendanceStatus;
   checkInTime: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
 };
 
 /** Get a list of attendances GET /attendances */
-export function attendances(meetingId: string) {
+export function attendances(meetingId: string, day: string) {
   return async (
     params: {
       pageSize?: number;
@@ -42,6 +43,7 @@ export function attendances(meetingId: string) {
   ) => {
     filter = filter || {};
     filter.meetingId = meetingId;
+    filter.day = day;
 
     const queryParams: any = {
       ...params,

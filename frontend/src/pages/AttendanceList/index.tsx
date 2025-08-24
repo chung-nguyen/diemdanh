@@ -198,6 +198,7 @@ const AttendanceList: React.FC = () => {
 
   const urlParams = new URLSearchParams(history.location.search);
   const meetingId = String(urlParams.get('id'));
+  const day = String(urlParams.get('d'));
 
   const { data: meeting, isLoading } = useQuery(
     ['attendance-list', meetingId],
@@ -209,7 +210,7 @@ const AttendanceList: React.FC = () => {
 
   const columns: ProColumns<AttendanceType>[] = [
     {
-      title: 'STT',
+      title: 'Ghế',
       dataIndex: 'seat',
       sorter: true,
     },
@@ -301,20 +302,6 @@ const AttendanceList: React.FC = () => {
       ),
       sorter: true,
     },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      render: (dom, entity) => <Space>{dayjs(entity.createdAt).format('DD MMM YYYY HH:mm')}</Space>,
-      hideInTable: true,
-      hideInSearch: true,
-    },
-    {
-      title: 'Updated At',
-      dataIndex: 'updatedAt',
-      render: (dom, entity) => <Space>{dayjs(entity.updatedAt).format('DD MMM YYYY HH:mm')}</Space>,
-      hideInTable: true,
-      hideInSearch: true,
-    },
     // {
     //   title: 'Thao tác',
     //   dataIndex: 'option',
@@ -339,7 +326,7 @@ const AttendanceList: React.FC = () => {
     <PageContainer loading={isLoading}>
       <ProTable<AttendanceType, TableListPagination>
         columnsState={tableColumnState('attendance', columnsStateMap, setColumnsStateMap)}
-        headerTitle="Danh sách"
+        headerTitle={`Điểm danh Ngày ${day} của ${meeting?.data.name} `}
         actionRef={actionRef}
         rowKey="_id"
         search={false}
@@ -427,7 +414,7 @@ const AttendanceList: React.FC = () => {
             </Button>
           </Dropdown>,
         ]}
-        request={attendances(meetingId)}
+        request={attendances(meetingId, day)}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -467,12 +454,14 @@ const AttendanceList: React.FC = () => {
 
       <CreateForm
         meeting={meeting?.data}
+        day={day}
         createModalVisible={createModalVisible}
         onSubmit={async (value: AttendanceType) => {
           if (!meeting?.data._id) {
             return;
           }
           value.meetingId = meeting?.data._id;
+          value.day = parseInt(day);
           const success = await handleAdd(value);
           if (success) {
             handleCreateModalVisible(false);
@@ -490,6 +479,7 @@ const AttendanceList: React.FC = () => {
 
       <UpdateForm
         meeting={meeting?.data}
+        day={day}
         onSubmit={async (value) => {
           const success = await handleUpdate(value, currentRow);
 

@@ -40,6 +40,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
       <ProFormText colProps={{ span: 24 }} name="name" label="Tên hội nghị" />
       <ProFormDateTimePicker colProps={{ span: 24 }} name="time" label="Thời điểm" />
       <ProFormText colProps={{ span: 24 }} name="duration" label="Thời hạn (giờ)" />
+      <ProFormText colProps={{ span: 24 }} name="daysCount" label="Số ngày" />      
       <ProFormTextArea
         colProps={{ span: 24 }}
         fieldProps={{ rows: 10 }}

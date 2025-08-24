@@ -11,9 +11,11 @@ import { type GuestType } from '@/services/ant-design-pro/guest';
 import Avatar from 'antd/es/avatar/avatar';
 import { UserOutlined } from '@ant-design/icons';
 import { getPhotoURL } from '@/services/utils/common-utils';
-import { Flex } from 'antd';
+import { Flex, Form, Input } from 'antd';
+import { MeetingType } from '@/services/ant-design-pro/meeting';
 
 export type UpdateFormProps = {
+  meeting: MeetingType | undefined;  
   onCancel: () => void;
   onSubmit: (values: GuestType) => Promise<void>;
   updateModalVisible: boolean;
@@ -21,6 +23,7 @@ export type UpdateFormProps = {
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = ({
+  meeting,
   onSubmit,
   onCancel,
   updateModalVisible,
@@ -41,9 +44,10 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
       }}
       initialValues={values}
     >
-      <Flex justify="center">
-        <Avatar size={256} src={getPhotoURL(values.idNumber + '.jpg')} icon={<UserOutlined />} />
-      </Flex>
+      <Form.Item label="Hội nghị" style={{ width: '100%' }}>
+        <Input readOnly value={meeting?.name} />
+      </Form.Item>
+      <ProFormText colProps={{ span: 24 }} name="seat" label="Số ghế" />
       <ProFormText colProps={{ span: 24 }} name="idNumber" label="Số CCCD" />
       <ProFormText colProps={{ span: 24 }} name="phoneNumber" label="Điện thoại" />
       <ProFormText colProps={{ span: 24 }} name="email" label="Email" />
